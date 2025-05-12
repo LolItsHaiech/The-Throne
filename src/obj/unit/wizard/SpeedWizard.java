@@ -1,8 +1,8 @@
-package obj.soldier.wizard;
+package obj.unit.wizard;
 
 import obj.Player;
 import obj.Weapon;
-import obj.soldier.wizard.functional.Effect;
+import obj.unit.wizard.functional.Effect;
 import util.Position;
 
 public class SpeedWizard extends Wizard{

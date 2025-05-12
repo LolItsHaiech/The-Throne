@@ -3,7 +3,7 @@ package obj.game;
 import obj.Player;
 import obj.Weapon;
 import obj.building.mystical.MysticalContainer;
-import obj.map.Tile;
+import obj.tileMap.Tile;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;

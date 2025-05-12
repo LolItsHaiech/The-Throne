@@ -3,7 +3,7 @@ package obj;
 import obj.auth.User;
 import obj.building.Castle;
 import obj.game.Game;
-import obj.soldier.Soldier;
+import obj.unit.Unit;
 import util.LinkedList;
 import util.map.Map;
 
@@ -12,7 +12,7 @@ public class Player {
     private final Game game;
     private final Tribe tribe;
     private final LinkedList<Castle> castles;
-    private final LinkedList<Soldier> soldiers;
+    private final LinkedList<Unit> units;
     private final Map<Weapon, Integer> weapons;
 
     private int woodCount;
@@ -34,7 +34,7 @@ public class Player {
         this.wealth = 0;
         this.vision = new boolean[mapWidth][mapHeight];
         this.castles = new LinkedList<>();
-        this.soldiers = new LinkedList<>();
+        this.units = new LinkedList<>();
         this.weapons = new Map<>();
     }
 
@@ -132,6 +132,10 @@ public class Player {
 
     public LinkedList<Castle> getCastles() {
         return this.castles;
+    }
+
+    public LinkedList<Unit> getUnits() {
+        return this.units;
     }
 
     public Map<Weapon, Integer> getWeapons() {

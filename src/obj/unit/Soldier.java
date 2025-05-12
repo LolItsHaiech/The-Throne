@@ -1,22 +1,22 @@
-package obj.soldier;
+package obj.unit;
 
 import obj.Player;
 import obj.Weapon;
 import util.Position;
 
-public class Rider extends Soldier{
-    public Rider(Weapon weapon, Player player, Position position) {
+public class Soldier extends Unit {
+    public Soldier(Weapon weapon, Player player, Position position) {
         super(weapon, player, position);
     }
 
     @Override
     public int getBaseSpeed() {
-        return 5;
+        return 3;
     }
 
     @Override
     public int getBaseDamage() {
-        return 35;
+        return 30;
     }
 
     @Override

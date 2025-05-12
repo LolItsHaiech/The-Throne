@@ -1,11 +1,11 @@
-package obj.map;
+package obj.tileMap;
 
 import obj.building.Building;
-import obj.soldier.Soldier;
+import obj.unit.Unit;
 
 public class Tile {
     private Building building;
-    private Soldier soldier;
+    private Unit unit;
     private final Biome biome;
     private final boolean tree;
     private final boolean mountain;
@@ -15,7 +15,7 @@ public class Tile {
         this.tree = tree;
         this.mountain = mountain;
         this.building = null;
-        this.soldier = null;
+        this.unit = null;
     }
 
     public Building getBuilding() {
@@ -26,12 +26,12 @@ public class Tile {
         this.building = building;
     }
 
-    public Soldier getSoldier() {
-        return soldier;
+    public Unit getSoldier() {
+        return unit;
     }
 
-    public void setSoldier(Soldier soldier) {
-        this.soldier = soldier;
+    public void setSoldier(Unit unit) {
+        this.unit = unit;
     }
 
     public boolean hasMountain() {

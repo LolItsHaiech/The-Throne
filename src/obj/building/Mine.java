@@ -18,7 +18,7 @@ public class Mine extends Building implements CollectorBuilding {
     @Override
     public void collect() {
         this.owner.increaseStone(50);
-        if(this.hasIron) {
+        if (this.hasIron) {
             this.owner.increaseIron(10);
         }
     }

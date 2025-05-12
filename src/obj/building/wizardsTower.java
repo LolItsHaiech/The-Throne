@@ -1,0 +1,53 @@
+package obj.building;
+
+import obj.Player;
+import obj.building.interfaces.TrainerBuilding;
+import obj.tileMap.Tile;
+import obj.unit.Soldier;
+import obj.unit.wizard.*;
+import obj.unit.wizard.functional.MagicType;
+import util.Position;
+
+public class wizardsTower extends Building implements TrainerBuilding {
+    private final Position POSITION;
+    private final MagicType magicType;
+    private boolean operation;
+    private int operationTime;
+
+    public wizardsTower(Position POSITION, MagicType magicType) {
+        super(null);
+        this.POSITION = POSITION;
+        this.magicType = magicType;
+        this.operation = false;
+        this.operationTime = 0;
+    }
+
+    @Override
+    public void trainNewUnit() {
+        this.operation = true;
+        this.operationTime = 10;
+    }
+
+    public void trainNewSoldier() {
+        this.trainNewUnit();
+    }
+
+    @Override
+    public void train() {
+        if (this.operationTime > 0)
+            this.operationTime--;
+        if (this.operationTime == 0 && this.operation) {
+            Wizard wizard = null;
+            switch (magicType) { // todo
+                case defenceWizard -> wizard = new DefenceWizard(null, null, this.POSITION);
+                case healerWizard -> wizard = new HealerWizard(null, null, this.POSITION);
+                case speedWizard -> wizard = new SpeedWizard(null, null, this.POSITION);
+                case strengthWizard -> wizard = new StrengthWizard(null, null, this.POSITION);
+            }
+            this.owner.getUnits().addFirst(wizard);
+            this.operation = false;
+        }
+    }
+
+    public void capture(Player player) {this.owner = player;}
+}

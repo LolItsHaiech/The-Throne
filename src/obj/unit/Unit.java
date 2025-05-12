@@ -1,11 +1,11 @@
-package obj.soldier;
+package obj.unit;
 
 import obj.Player;
 import obj.Weapon;
-import obj.soldier.wizard.functional.Effect;
+import obj.unit.wizard.functional.Effect;
 import util.Position;
 
-public abstract class Soldier {
+public abstract class Unit {
     private Weapon weapon;
     private Position position;
     private final Player player;
@@ -20,7 +20,7 @@ public abstract class Soldier {
     private int effectDurationLeft;
 
 
-    public Soldier(Weapon weapon, Player player, Position position) {
+    public Unit(Weapon weapon, Player player, Position position) {
         this.weapon = weapon;
         this.position = position;
         this.player = player;

@@ -1,13 +1,13 @@
-package obj.soldier.wizard;
+package obj.unit.wizard;
 
 import exceptions.IllegalMoveException;
 import obj.Player;
 import obj.Weapon;
-import obj.soldier.Soldier;
-import obj.soldier.wizard.functional.Effect;
+import obj.unit.Unit;
+import obj.unit.wizard.functional.Effect;
 import util.Position;
 
-public abstract class Wizard extends Soldier {
+public abstract class Wizard extends Unit {
     public Wizard(Weapon weapon, Player player, Position position) {
         super(weapon, player, position);
     }
@@ -49,9 +49,9 @@ public abstract class Wizard extends Soldier {
         }
         for (int i = target.x()-1; i < target.x()+1; i++) {
             for (int j = target.y()-1; j < target.y()+1; j++) {
-                Soldier soldier = this.getPlayer().getGame().getMap()[i][j].getSoldier();
-                if(soldier!=null) {
-                    soldier.setEffect(this.getEffect());
+                Unit unit = this.getPlayer().getGame().getMap()[i][j].getSoldier();
+                if(unit !=null) {
+                    unit.setEffect(this.getEffect());
                 }
             }
         }

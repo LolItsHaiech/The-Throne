@@ -1,10 +1,10 @@
-package obj.soldier;
+package obj.unit;
 
 import obj.Player;
 import obj.Weapon;
 import util.Position;
 
-public class Commander extends Soldier{
+public class Commander extends Unit {
     public Commander(Weapon weapon, Player player, Position position) {
         super(weapon, player, position);
     }
