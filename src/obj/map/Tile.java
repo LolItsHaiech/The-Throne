@@ -8,12 +8,12 @@ public class Tile {
     private Soldier soldier;
     private final Biome biome;
     private final boolean tree;
-    private final boolean mountain;
+    private final Height height;
 
-    public Tile(Biome biome, boolean tree, boolean mountain) {
+    public Tile(Biome biome, Height height, boolean tree) {
         this.biome = biome;
         this.tree = tree;
-        this.mountain = mountain;
+        this.height = height;
         this.building = null;
         this.soldier = null;
     }
@@ -34,16 +34,16 @@ public class Tile {
         this.soldier = soldier;
     }
 
-    public boolean hasMountain() {
-        return this.mountain;
-    }
-
     public boolean hasTree() {
         return this.tree;
     }
 
     public Biome getBiome() {
         return biome;
+    }
+
+    public Height getHeight() {
+        return this.height;
     }
 
     public enum Biome {
@@ -56,24 +56,37 @@ public class Tile {
         swamp(0, 0),
         bog(0, 0),
         taiga(0, 0);
-        public final int SPEED_MODIFIER;
-        public final int DEFENCE_MODIFIER;
+        public final int speedModifier;
+        public final int defenceModifier;
 
         Biome(int speedModifier, int defenceModifier) {
-            this.SPEED_MODIFIER = speedModifier;
-            this.DEFENCE_MODIFIER = defenceModifier;
+            this.speedModifier = speedModifier;
+            this.defenceModifier = defenceModifier;
         }
     }
 
+    public enum Height {
+        flat(0,0),
+        hill(1, -1),
+        mountain(2, -2),
+        ;
+        Height(int rangeModifier, int speedModifier) {
+            this.rangeModifier = rangeModifier;
+            this.speedModifier = speedModifier;
+        }
+        public final int rangeModifier;
+        public final int speedModifier;
+    }
+
     public int getSpeedModifier() {
-        return this.biome.SPEED_MODIFIER + (this.mountain?-1:0) + (this.tree?-1:0);
+        return this.biome.speedModifier + this.height.speedModifier + (this.tree?-1:0);
     }
 
     public int getRangeModifier() {
-        return (this.mountain?1:0) + (this.tree?-1:0);
+        return this.height.rangeModifier + (this.tree?-1:0);
     }
 
     public int getDefenceModifier() {
-        return this.biome.DEFENCE_MODIFIER;
+        return this.biome.defenceModifier;
     }
 }
