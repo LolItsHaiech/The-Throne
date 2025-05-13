@@ -134,6 +134,10 @@ public class Player {
         return this.castles;
     }
 
+    public LinkedList<Soldier> getSoldiers() {
+        return this.soldiers;
+    }
+
     public Map<Weapon, Integer> getWeapons() {
         return weapons;
     }
