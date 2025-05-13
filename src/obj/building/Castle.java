@@ -68,9 +68,9 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
     public void capture(Player player) {
         this.owner.getCastles().remove(this); // todo
         player.getCastles().addFirst(this);
-        int radius = this.getBorderLength();
-        for (int x = 0; x < radius; x++) {
-            for (int y = 0; y < radius; y++) {
+        int length = this.getBorderLength();
+        for (int x = 0; x < length; x++) {
+            for (int y = 0; y < length; y++) {
                 Tile tile = player.getGame().getMap()[x][y];
                 if (tile.getBuilding() != null) {
                     tile.getBuilding().setOwner(player);
