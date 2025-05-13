@@ -3,8 +3,9 @@ package db;
 import java.io.*;
 import java.util.Iterator;
 
+// todo make synchronized
 public class Database<T extends DBSerializable> implements Iterable<T> {
-    private final File file;
+    private File file;
 
     public Database(String fileName) {
         this.file = new File(fileName + ".db");
@@ -32,6 +33,45 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
         }
         return false;
     }
+
+    public int getNextID() {
+        int c = 0;
+        for (T obj : this) {
+            c = obj.getID();
+        }
+        return c;
+    }
+
+    public boolean update(T object) {
+        boolean saved = false;
+        File tempFile = new File(file + ".temp.db");
+        try {
+            FileOutputStream fos = new FileOutputStream(tempFile, false);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            for (T readObject : this) {
+                if (object.getID() == readObject.getID()) {
+                    oos.writeObject(object);
+                    saved = true;
+                } else {
+                    oos.writeObject(readObject);
+                }
+            }
+
+            fos.close();
+            oos.close();
+        } catch (IOException e) {
+            return false;
+        }
+
+        this.file.delete();
+        tempFile.renameTo(this.file);
+        this.file = tempFile;
+
+
+        return saved;
+    }
+
 
     @Override
     public Iterator<T> iterator() {
@@ -78,7 +118,10 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             } catch (EOFException eof) {
                 finished = true;
                 nextObj = null;
-                try { ois.close(); } catch (IOException ignored) {}
+                try {
+                    ois.close();
+                } catch (IOException ignored) {
+                }
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException("Error reading from database", e);
             }
