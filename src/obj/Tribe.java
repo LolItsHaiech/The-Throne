@@ -4,7 +4,7 @@ public enum Tribe {
     human(20, 3, 3, 8),
     orc(22, 3, 2, 9),
     elf(17, 2, 4, 9),
-    dorf(20, 3, 2, 13);
+    dwarf(20, 3, 2, 13);
 
     private final int baseHP;
     private final int baseDefence;
