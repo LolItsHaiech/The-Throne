@@ -57,10 +57,24 @@ public abstract class Game {
                 double plantation = OpenSimplex2S.noise2(this.SEED + 2, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
                 double tileHeight = OpenSimplex2S.noise2(this.SEED + 3, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
 
+                Tile.Biome biome = getBiome(hotness, humid);
+                Tile.Height height;
+                boolean tree = (plantation > 0.4 || rand.nextDouble() < 0.02) &&
+                        (biome != Tile.Biome.desert || rand.nextDouble() < 0.4);
+
+                if (tileHeight > 0.7 || rand.nextDouble() < 0.02) {
+                    height = Tile.Height.mountain;
+                } else if (tileHeight > 0.5 || rand.nextDouble() < 0.02) {
+                    height = Tile.Height.hill;
+                } else {
+                    height = Tile.Height.flat;
+                }
+
+
                 map[x][y] = new Tile(
                         getBiome(hotness, humid),
-                        plantation > 0.4 || rand.nextDouble() < 0.02,
-                        tileHeight > 0.4 || rand.nextDouble() < 0.02
+                        height,
+                        tree
                 );
             }
         }
@@ -110,7 +124,7 @@ public abstract class Game {
         return biome;
     }
 
-    public Tile getTile(Position position){
+    public Tile getTile(Position position) {
         return this.map[position.x()][position.y()];
     }
 }
