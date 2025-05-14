@@ -4,10 +4,10 @@ import util.StringUtils;
 //todo
 public class User {
     private String displayName;
-    private int username;
+    private String username;
     private long hashedPassword;
 
-    public User(String displayName, int username, String password) {
+    public User(String displayName, String username, String password) {
         this.displayName = displayName;
         this.username = username;
         this.hashedPassword = StringUtils.hash(password); // todo
@@ -21,11 +21,26 @@ public class User {
         this.displayName = displayName;
     }
 
-    public int getUsername() {
+    public String getUsername() {
         return this.username;
     }
 
-    public void setUsername(int username) {
+    public void setUsername(String username) {
         this.username = username;
+    }
+
+    public boolean verifyPassword(String password){
+        return this.hashedPassword == StringUtils.hash(password);
+    }
+
+    public boolean changePassword(String oldPassword, String newPassword){
+        if(verifyPassword(oldPassword)){
+            this.hashedPassword = StringUtils.hash(newPassword);
+            return true;
+        }
+        return false;
+    }
+    public String toString(){
+        return "User { " + "displayName = " + displayName + "\n" + " username = " + username + "}";
     }
 }
