@@ -39,7 +39,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
         for (T obj : this) {
             c = obj.getID();
         }
-        return c;
+        return c + 1;
     }
 
     public boolean update(T object) {
