@@ -8,16 +8,24 @@ import obj.Player;
  */
 
 public class PerfectionGame extends Game {
-    public PerfectionGame(Player[] players, int mapWidth, int mapHeight) {
+    private final int turnCountLimit;
+
+    public PerfectionGame(Player[] players, int mapWidth, int mapHeight, int turnCountLimit) {
         super(players, mapWidth, mapHeight);
+        this.turnCountLimit = turnCountLimit;
     }
 
-    public PerfectionGame(Player[] players, int mapWidth, int mapHeight, long seed) {
+    public PerfectionGame(Player[] players, int mapWidth, int mapHeight, long seed, int turnCountLimit) {
         super(players, mapWidth, mapHeight, seed);
+        this.turnCountLimit = turnCountLimit;
     }
 
     @Override
     public boolean isEnded() {
-        return false; //todo
+        return this.getTurnCount() >= this.turnCountLimit;
+    }
+
+    public int getTurnCountLimit() {
+        return turnCountLimit;
     }
 }
