@@ -2,7 +2,7 @@ package obj.soldier.wizard.functional;
 
 import obj.soldier.Soldier;
 
-public enum Effect {
+public enum Magic {
 
     healthBoost(0, 20, Soldier::setHealth, Soldier::getHealth),
     defenceBoost(2, 2, Soldier::setDefenceModifier, Soldier::getDefenceModifier),
@@ -16,7 +16,7 @@ public enum Effect {
     private final EffectSetter setter;
     private final EffectGetter getter;
 
-    Effect(int duration, int boost, EffectSetter setter, EffectGetter getter) {
+    Magic(int duration, int boost, EffectSetter setter, EffectGetter getter) {
         this.DURATION = duration;
         this.BOOST = boost;
         this.setter = setter;

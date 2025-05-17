@@ -4,7 +4,7 @@ import exceptions.IllegalMoveException;
 import obj.Player;
 import obj.Weapon;
 import obj.soldier.Soldier;
-import obj.soldier.wizard.functional.Effect;
+import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
 public abstract class Wizard extends Soldier {
@@ -41,7 +41,7 @@ public abstract class Wizard extends Soldier {
         return 3;
     }
 
-    public abstract Effect getEffect();
+    public abstract Magic getEffect();
 
     public void castEffect(Position target) throws IllegalMoveException {
         if (Math.abs(this.getPos().x() - target.x()) > this.getRange() || Math.abs(this.getPos().y() - target.y()) > this.getRange()) {

@@ -2,7 +2,7 @@ package obj.soldier.wizard;
 
 import obj.Player;
 import obj.Weapon;
-import obj.soldier.wizard.functional.Effect;
+import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
 public class HealerWizard extends Wizard{
@@ -11,7 +11,7 @@ public class HealerWizard extends Wizard{
     }
 
     @Override
-    public Effect getEffect() {
-        return Effect.healthBoost;
+    public Magic getEffect() {
+        return Magic.healthBoost;
     }
 }

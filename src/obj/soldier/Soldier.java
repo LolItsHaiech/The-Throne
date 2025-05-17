@@ -2,7 +2,7 @@ package obj.soldier;
 
 import obj.Player;
 import obj.Weapon;
-import obj.soldier.wizard.functional.Effect;
+import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
 public abstract class Soldier {
@@ -15,7 +15,7 @@ public abstract class Soldier {
     private int damageModifier;
     private int defenceModifier;
 
-    private Effect effect;
+    private Magic magic;
     // todo decrement every turn;
     private int effectDurationLeft;
 
@@ -31,7 +31,7 @@ public abstract class Soldier {
         this.defenceModifier = 0;
 
         this.effectDurationLeft = 0;
-        this.effect = null;
+        this.magic = null;
     }
 
     public Player getPlayer() {
@@ -108,22 +108,22 @@ public abstract class Soldier {
         this.defenceModifier = defenceModifier;
     }
 
-    public Effect getEffect() {
-        return effect;
+    public Magic getEffect() {
+        return magic;
     }
 
-    public void setEffect(Effect effect) {
-        this.effect = effect;
-        this.effect.effectStart(this);
-        this.effectDurationLeft = effect.DURATION;
+    public void setEffect(Magic magic) {
+        this.magic = magic;
+        this.magic.effectStart(this);
+        this.effectDurationLeft = magic.DURATION;
     }
 
     public void onTurnStart() {
-        if (this.effect != null) {
+        if (this.magic != null) {
             this.effectDurationLeft--;
             if (this.effectDurationLeft <= 0) {
-                this.effect.effectEnd(this);
-                this.effect = null;
+                this.magic.effectEnd(this);
+                this.magic = null;
             }
         }
     }
