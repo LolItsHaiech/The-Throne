@@ -3,19 +3,19 @@ package obj.building;
 import obj.Player;
 import obj.building.interfaces.TrainerBuilding;
 import obj.soldier.wizard.*;
-import obj.soldier.wizard.functional.MagicType;
+import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
 public class WizardsTower extends Building implements TrainerBuilding {
     private final Position POSITION;
-    private final MagicType magicType;
+    private final Magic magic;
     private boolean operation;
     private int operationTime;
 
-    public WizardsTower(Position POSITION, MagicType magicType) {
+    public WizardsTower(Position POSITION, Magic magic) {
         super(null);
         this.POSITION = POSITION;
-        this.magicType = magicType;
+        this.magic = magic;
         this.operation = false;
         this.operationTime = 0;
     }
@@ -38,11 +38,11 @@ public class WizardsTower extends Building implements TrainerBuilding {
             this.operationTime--;
         if (this.operationTime == 0 && this.operation) {
             Wizard wizard = null;
-            switch (magicType) {
-                case defenceWizard -> wizard = new DefenceWizard(null, this.owner, this.POSITION);
-                case healerWizard -> wizard = new HealerWizard(null, this.owner, this.POSITION);
-                case speedWizard -> wizard = new SpeedWizard(null, this.owner, this.POSITION);
-                case strengthWizard -> wizard = new StrengthWizard(null, this.owner, this.POSITION);
+            switch (magic) {
+                case defenceBoost -> wizard = new DefenceWizard(null, this.owner, this.POSITION);
+                case healthBoost -> wizard = new HealerWizard(null, this.owner, this.POSITION);
+                case speedBoost -> wizard = new SpeedWizard(null, this.owner, this.POSITION);
+                case damageBoost -> wizard = new StrengthWizard(null, this.owner, this.POSITION);
             }
             this.owner.getSoldiers().addFirst(wizard);
             this.operation = false;

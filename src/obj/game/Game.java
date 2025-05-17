@@ -6,7 +6,7 @@ import obj.building.Castle;
 import obj.building.WizardsTower;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
-import obj.soldier.wizard.functional.MagicType;
+import obj.soldier.wizard.functional.Magic;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
@@ -109,13 +109,13 @@ public abstract class Game {
             map[x][y].setBuilding(castle);
         }
 
-        for (MagicType mType : MagicType.values()) {
+        for (Magic magic : Magic.values()) {
             int x, y;
             do {
                 x = rand.nextInt(mapWidth);
                 y = rand.nextInt(mapHeight);
             } while (map[x][y].getBuilding() == null);
-            map[x][y].setBuilding(new WizardsTower(new Position(x, y), mType));
+            map[x][y].setBuilding(new WizardsTower(new Position(x, y), magic));
         }
         return map;
     }
