@@ -2,8 +2,11 @@ package obj.game;
 
 import obj.Player;
 import obj.Weapon;
+import obj.building.Castle;
+import obj.building.WizardsTower;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
+import obj.soldier.wizard.functional.MagicType;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
@@ -13,7 +16,8 @@ import java.util.Random;
 public abstract class Game {
     protected final Player[] players;
     protected final Tile[][] map;
-    protected int turn;
+    private int turn;
+    private int turnCount;
     private final long SEED;
 
     private static final double NOISE_FREQUENCY = 0.05;
@@ -27,6 +31,7 @@ public abstract class Game {
         this.map = this.generateMap(mapWidth, mapHeight);
         this.SEED = seed;
         this.turn = 0;
+        this.turnCount = 0;
     }
 
     public Player[] getPlayers() {
@@ -126,5 +131,20 @@ public abstract class Game {
 
     public Tile getTile(Position position) {
         return this.map[position.x()][position.y()];
+    }
+
+    public void nextTurn() {
+        this.turn = (this.turn + 1) % this.players.length;
+        if(this.turn == 0) {
+            this.turnCount++;
+        }
+    }
+
+    public Player GetActivePlayer() {
+        return this.players[this.turn];
+    }
+
+    public int getTurnCount() {
+        return this.turnCount;
     }
 }
