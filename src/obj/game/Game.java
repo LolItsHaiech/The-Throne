@@ -56,6 +56,7 @@ public abstract class Game {
         // terrain gen
 
         for (int x = 0; x < mapWidth; x++) {
+            // biome/feature gen
             for (int y = 0; y < mapHeight; y++) {
                 double hotness = OpenSimplex2S.noise2(this.SEED, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
                 double humid = OpenSimplex2S.noise2(this.SEED + 1, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
@@ -96,6 +97,26 @@ public abstract class Game {
             }
         }
 
+        for (Player player : this.players) {
+            int x, y;
+            do {
+                x = rand.nextInt(mapWidth);
+                y = rand.nextInt(mapHeight);
+            } while (map[x][y].getBuilding() == null);
+
+            Castle castle = new Castle(player, new Position(x, y));
+            player.getCastles().addFirst(castle);
+            map[x][y].setBuilding(castle);
+        }
+
+        for (MagicType mType : MagicType.values()) {
+            int x, y;
+            do {
+                x = rand.nextInt(mapWidth);
+                y = rand.nextInt(mapHeight);
+            } while (map[x][y].getBuilding() == null);
+            map[x][y].setBuilding(new WizardsTower(new Position(x, y), mType));
+        }
         return map;
     }
 
