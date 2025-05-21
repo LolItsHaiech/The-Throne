@@ -71,7 +71,6 @@ public enum Weapon {
 
     @Override
     public String toString() {
-        System.out.println(sword);
         return this.name() + " (" + this.damage + ")";
     }
 }
