@@ -18,6 +18,8 @@ public abstract class Soldier {
     private Magic magic;
     // todo decrement every turn;
     private int effectDurationLeft;
+    private boolean hasMoved;
+    private boolean hasAttacked;
 
 
     public Soldier(Weapon weapon, Player player, Position position) {
@@ -32,6 +34,8 @@ public abstract class Soldier {
 
         this.effectDurationLeft = 0;
         this.magic = null;
+        this.hasMoved = false;
+        this.hasAttacked = false;
     }
 
     public Player getPlayer() {
@@ -119,6 +123,8 @@ public abstract class Soldier {
     }
 
     public void onTurnStart() {
+        this.hasMoved = false;
+        this.hasAttacked = false;
         if (this.magic != null) {
             this.effectDurationLeft--;
             if (this.effectDurationLeft <= 0) {
@@ -129,5 +135,63 @@ public abstract class Soldier {
     }
 
     public void onTurnEnd() {
+    }
+
+    public boolean moveTo(Position newPos) {
+        if (this.hasMoved) {
+            return false;
+        }
+        double distance = this.position.distanceTo(newPos);
+
+        if (distance > this.getSpeed()) {
+            return false;
+        }
+
+        if (this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].getSoldier()!=null) {
+            return false;
+        }
+
+        this.getPlayer().getGame().getMap()[this.position.x()][this.position.y()].setSoldier(null);
+        this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].setSoldier(this);
+
+        this.position = newPos;
+        this.hasMoved = true;
+        return true;
+    }
+    public boolean hasMoved() {
+        return this.hasMoved;
+    }
+
+    public boolean attack(Position targetPos) {
+        if (this.hasAttacked) {
+            return false;
+        }
+
+        Soldier target = this.getPlayer().getGame().getMap()[targetPos.x()][targetPos.y()].getSoldier();
+
+        if (target == null) {
+            return false;
+        }
+
+        if (target.getPlayer() == this.getPlayer()) {
+            return false;
+        }
+
+        double distance = this.position.distanceTo(targetPos);
+        if (distance > this.getRange()) {
+            return false;
+        }
+
+        int damage = this.getDamage();
+        int defence = target.getDefence();
+        int netDamage = Math.max(0, damage - defence); // اگه دفاع بیشتر از حمله بود، صفر بشه
+
+        target.setHealth(target.getHealth() - netDamage);
+
+        if (target.getHealth() <= 0) {
+            this.getPlayer().getGame().getMap()[targetPos.x()][targetPos.y()].setSoldier(null);
+        }
+        // می‌تونی لاگ یا افکت هم بزاری
+        return true; // حمله با موفقیت انجام شد
     }
 }

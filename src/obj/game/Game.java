@@ -6,6 +6,7 @@ import obj.building.Castle;
 import obj.building.WizardsTower;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
+import obj.soldier.Soldier;
 import obj.soldier.wizard.functional.Magic;
 import util.OpenSimplex2S;
 import util.Position;
@@ -19,7 +20,6 @@ public abstract class Game {
     private int turn;
     private int turnCount;
     private final long SEED;
-
     private static final double NOISE_FREQUENCY = 0.05;
 
     public Game(Player[] players, int mapWidth, int mapHeight) {
@@ -167,5 +167,20 @@ public abstract class Game {
 
     public int getTurnCount() {
         return this.turnCount;
+    }
+
+    public boolean isInBounds(Position pos) {
+        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < this.map.length && pos.y() < this.map[0].length;
+    }
+
+    public Soldier getSoldierAt(Position pos) {
+        for (Player player : players) {
+            for (Soldier soldier : player.getSoldiers()) {
+                if (soldier.getPos().equals(pos)) {
+                    return soldier;
+                }
+            }
+        }
+        return null;
     }
 }
