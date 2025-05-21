@@ -78,7 +78,7 @@ public abstract class Game {
 
 
                 map[x][y] = new Tile(
-                        getBiome(hotness, humid),
+                        biome,
                         height,
                         tree
                 );
