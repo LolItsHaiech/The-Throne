@@ -20,17 +20,17 @@ public abstract class Game {
     private int turn;
     private int turnCount;
     private final long SEED;
-    private static final double NOISE_FREQUENCY = 0.05;
+    private static final double NOISE_FREQUENCY = 0.1;
 
     public Game(Player[] players, int mapWidth, int mapHeight) {
-        this(players, mapWidth, mapHeight, System.nanoTime() * new Random().nextLong());
+        this(players, mapWidth, mapHeight, new Random(System.nanoTime()).nextLong());
     }
 
     public Game(Player[] players, int mapWidth, int mapHeight, long seed) {
         this.players = players;
-        this.map = this.generateMap(mapWidth, mapHeight);
         this.SEED = seed;
         this.turn = 0;
+        this.map = this.generateMap(mapWidth, mapHeight);
         this.turnCount = 0;
     }
 
@@ -54,14 +54,13 @@ public abstract class Game {
         Random rand = new Random(this.SEED);
 
         // terrain gen
-
         for (int x = 0; x < mapWidth; x++) {
             // biome/feature gen
             for (int y = 0; y < mapHeight; y++) {
                 double hotness = OpenSimplex2S.noise2(this.SEED, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
-                double humid = OpenSimplex2S.noise2(this.SEED + 1, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
-                double plantation = OpenSimplex2S.noise2(this.SEED + 2, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
-                double tileHeight = OpenSimplex2S.noise2(this.SEED + 3, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
+                double humid = OpenSimplex2S.noise2(this.SEED * 2 + 1, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
+                double plantation = OpenSimplex2S.noise2(this.SEED * 3 + 2, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
+                double tileHeight = OpenSimplex2S.noise2(this.SEED * 4 + 3, x * NOISE_FREQUENCY, y * NOISE_FREQUENCY);
 
                 Tile.Biome biome = getBiome(hotness, humid);
                 Tile.Height height;
@@ -86,11 +85,14 @@ public abstract class Game {
         }
 
         // mythic gen
-
         for (MapEntry<String, Weapon> me : MysticalContainer.containers) {
             if (rand.nextDouble() < 0.15) {
-                int x0 = rand.nextInt();
-                int y0 = rand.nextInt();
+                int x0, y0;
+                do {
+                    x0 = rand.nextInt(mapWidth);
+                    y0 = rand.nextInt(mapHeight);
+//                    System.out.println(x0 + ", " + y0);
+                } while (map[x0][y0].getBuilding() != null);
                 map[x0][y0].setBuilding(
                         new MysticalContainer(me.getKey(), me.getValue(), new Position(x0, y0))
                 );
@@ -102,19 +104,18 @@ public abstract class Game {
             do {
                 x = rand.nextInt(mapWidth);
                 y = rand.nextInt(mapHeight);
-            } while (map[x][y].getBuilding() == null);
+            } while (map[x][y].getBuilding() != null);
 
             Castle castle = new Castle(player, new Position(x, y));
             player.getCastles().addFirst(castle);
             map[x][y].setBuilding(castle);
         }
-
         for (Magic magic : Magic.values()) {
             int x, y;
             do {
                 x = rand.nextInt(mapWidth);
                 y = rand.nextInt(mapHeight);
-            } while (map[x][y].getBuilding() == null);
+            } while (map[x][y].getBuilding() != null);
             map[x][y].setBuilding(new WizardsTower(new Position(x, y), magic));
         }
         return map;
@@ -133,7 +134,7 @@ public abstract class Game {
         } else if (hotness <= -.333) {
             if (humid >= .333) {
                 biome = Tile.Biome.taiga;
-            } else if (humid <= .333) {
+            } else if (humid <= -.333) {
                 biome = Tile.Biome.polarDesert;
             } else {
                 biome = Tile.Biome.tundra;
@@ -156,7 +157,7 @@ public abstract class Game {
 
     public void nextTurn() {
         this.turn = (this.turn + 1) % this.players.length;
-        if(this.turn == 0) {
+        if (this.turn == 0) {
             this.turnCount++;
         }
     }

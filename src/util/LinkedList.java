@@ -18,6 +18,8 @@ public class LinkedList<T> implements Iterable<T> {
         if (head == null) {
             head = newNode;
             tail = newNode;
+            this.size++;
+            return;
         }
         this.tail.next = newNode;
         this.size++;
@@ -28,6 +30,8 @@ public class LinkedList<T> implements Iterable<T> {
         if (this.head == null) {
             this.head = newNode;
             this.tail = newNode;
+            this.size++;
+            return;
         }
         newNode.next = this.head;
         this.head = newNode;
