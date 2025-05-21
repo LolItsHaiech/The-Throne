@@ -20,9 +20,6 @@ public abstract class Game {
     private int turn;
     private int turnCount;
     private final long SEED;
-    protected final int width;
-    protected final int height;
-
     private static final double NOISE_FREQUENCY = 0.05;
 
     public Game(Player[] players, int mapWidth, int mapHeight) {
@@ -32,8 +29,6 @@ public abstract class Game {
     public Game(Player[] players, int mapWidth, int mapHeight, long seed) {
         this.players = players;
         this.map = this.generateMap(mapWidth, mapHeight);
-        this.width=mapWidth;
-        this.height=mapHeight;
         this.SEED = seed;
         this.turn = 0;
         this.turnCount = 0;
@@ -175,7 +170,7 @@ public abstract class Game {
     }
 
     public boolean isInBounds(Position pos) {
-        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < width && pos.y() < height;
+        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < this.map.length && pos.y() < this.map[0].length;
     }
 
     public Soldier getSoldierAt(Position pos) {
