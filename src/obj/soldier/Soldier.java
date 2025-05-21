@@ -18,6 +18,7 @@ public abstract class Soldier {
     private Magic magic;
     // todo decrement every turn;
     private int effectDurationLeft;
+    private boolean hasMoved;
 
 
     public Soldier(Weapon weapon, Player player, Position position) {
@@ -32,6 +33,7 @@ public abstract class Soldier {
 
         this.effectDurationLeft = 0;
         this.magic = null;
+        this.hasMoved = false;
     }
 
     public Player getPlayer() {
@@ -119,6 +121,7 @@ public abstract class Soldier {
     }
 
     public void onTurnStart() {
+        this.hasMoved = false;
         if (this.magic != null) {
             this.effectDurationLeft--;
             if (this.effectDurationLeft <= 0) {
@@ -126,14 +129,16 @@ public abstract class Soldier {
                 this.magic = null;
             }
         }
-
     }
 
     public void onTurnEnd() {
     }
 
     public boolean moveTo(Position newPos) {
-        int distance = this.position.distanceTo(newPos);
+        if (this.hasMoved) {
+            return false;
+        }
+        double distance = this.position.distanceTo(newPos);
 
         // چک کردن اینکه فاصله بیشتر از سرعت نباشه
         if (distance > this.getSpeed()) {
@@ -148,9 +153,12 @@ public abstract class Soldier {
         this.getPlayer().getGame().getMap()[this.position.x()][this.position.y()].setSoldier(null);
         this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].setSoldier(this);
 
-
         // اگر همه چیز درست بود، حرکت انجام میشه
         this.position = newPos;
+        this.hasMoved = true;
         return true;
+    }
+    public boolean hasMoved() {
+        return this.hasMoved;
     }
 }
