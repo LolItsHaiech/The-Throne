@@ -188,14 +188,4 @@ public abstract class Game {
         }
         return null;
     }
-
-    public boolean isValidMove(Soldier soldier, Position pos) {
-        // بررسی اینکه موقعیت داخل نقشه هست یا نه
-        if (!isInBounds(pos)) return false;
-
-        // بررسی اینکه موقعیت مقصد خالیه یا نه
-        if (getSoldierAt(pos) != null) return false;
-
-        return true;
-    }
 }

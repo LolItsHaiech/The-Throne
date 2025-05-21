@@ -126,6 +126,7 @@ public abstract class Soldier {
                 this.magic = null;
             }
         }
+
     }
 
     public void onTurnEnd() {
@@ -140,9 +141,13 @@ public abstract class Soldier {
         }
 
         // بررسی اعتبار حرکت (نیاز به پیاده‌سازی در کلاس Game یا Map)
-        if (!player.getGame().isValidMove(this, newPos)) {
+        if (this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].getSoldier()!=null) {
             return false;
         }
+
+        this.getPlayer().getGame().getMap()[this.position.x()][this.position.y()].setSoldier(null);
+        this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].setSoldier(this);
+
 
         // اگر همه چیز درست بود، حرکت انجام میشه
         this.position = newPos;
