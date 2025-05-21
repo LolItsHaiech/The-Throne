@@ -190,8 +190,8 @@ public abstract class Soldier {
 
         if (target.getHealth() <= 0) {
             this.getPlayer().getGame().getMap()[targetPos.x()][targetPos.y()].setSoldier(null);
+        }
         // می‌تونی لاگ یا افکت هم بزاری
         return true; // حمله با موفقیت انجام شد
     }
-
 }
