@@ -156,4 +156,5 @@ public class Player {
     public boolean[][] getVision() {
         return vision;
     }
+    
 }

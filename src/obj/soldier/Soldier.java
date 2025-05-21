@@ -130,4 +130,22 @@ public abstract class Soldier {
 
     public void onTurnEnd() {
     }
+
+    public boolean moveTo(Position newPos) {
+        int distance = this.position.distanceTo(newPos);
+
+        // چک کردن اینکه فاصله بیشتر از سرعت نباشه
+        if (distance > this.getSpeed()) {
+            return false;
+        }
+
+        // بررسی اعتبار حرکت (نیاز به پیاده‌سازی در کلاس Game یا Map)
+        if (!player.getGame().isValidMove(this, newPos)) {
+            return false;
+        }
+
+        // اگر همه چیز درست بود، حرکت انجام میشه
+        this.position = newPos;
+        return true;
+    }
 }

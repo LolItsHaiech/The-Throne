@@ -6,6 +6,7 @@ import obj.building.Castle;
 import obj.building.WizardsTower;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
+import obj.soldier.Soldier;
 import obj.soldier.wizard.functional.Magic;
 import util.OpenSimplex2S;
 import util.Position;
@@ -19,6 +20,8 @@ public abstract class Game {
     private int turn;
     private int turnCount;
     private final long SEED;
+    protected final int width;
+    protected final int height;
 
     private static final double NOISE_FREQUENCY = 0.05;
 
@@ -29,6 +32,8 @@ public abstract class Game {
     public Game(Player[] players, int mapWidth, int mapHeight, long seed) {
         this.players = players;
         this.map = this.generateMap(mapWidth, mapHeight);
+        this.width=mapWidth;
+        this.height=mapHeight;
         this.SEED = seed;
         this.turn = 0;
         this.turnCount = 0;
@@ -167,5 +172,30 @@ public abstract class Game {
 
     public int getTurnCount() {
         return this.turnCount;
+    }
+
+    public boolean isInBounds(Position pos) {
+        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < width && pos.y() < height;
+    }
+
+    public Soldier getSoldierAt(Position pos) {
+        for (Player player : players) {
+            for (Soldier soldier : player.getSoldiers()) {
+                if (soldier.getPos().equals(pos)) {
+                    return soldier;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isValidMove(Soldier soldier, Position pos) {
+        // بررسی اینکه موقعیت داخل نقشه هست یا نه
+        if (!isInBounds(pos)) return false;
+
+        // بررسی اینکه موقعیت مقصد خالیه یا نه
+        if (getSoldierAt(pos) != null) return false;
+
+        return true;
     }
 }
