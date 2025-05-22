@@ -1,11 +1,16 @@
 package db;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.*;
 import java.util.Iterator;
 
-// todo make synchronized
+
+// todo optimize
+// todo implement cache
 public class Database<T extends DBSerializable> implements Iterable<T> {
     private File file;
+
 
     public Database(String fileName) {
         this.file = new File(fileName + ".db");
@@ -27,7 +32,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
 
     public boolean check(T obj) {
         for (T temp : this) {
-            if (temp.equals(obj)) {
+            if (temp.getID() == obj.getID()) {
                 return true;
             }
         }
@@ -73,6 +78,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     }
 
 
+    @NotNull
     @Override
     public Iterator<T> iterator() {
         try {
@@ -102,15 +108,25 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     private class DatabaseItr implements Iterator<T> {
         private final ObjectInputStream ois;
         private T nextObj;
-        private boolean finished = false;
+        private boolean finished;
 
         public DatabaseItr() throws IOException {
-            FileInputStream fis = new FileInputStream(file);
-            this.ois = new ObjectInputStream(fis);
+            ObjectInputStream ois;
+            try{
+                ois = new ObjectInputStream(new FileInputStream(file));
+                this.finished = false;
+            } catch (FileNotFoundException e) {
+                this.finished = true;
+                ois = null;
+            }
+            this.ois = ois;
             advance();
         }
 
         private void advance() {
+            if (this.ois == null) {
+                return;
+            }
             try {
                 @SuppressWarnings("unchecked")
                 T obj = (T) ois.readObject();

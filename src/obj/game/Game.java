@@ -67,9 +67,9 @@ public abstract class Game {
                 boolean tree = (plantation > 0.4 || rand.nextDouble() < 0.02) &&
                         (biome != Tile.Biome.desert || rand.nextDouble() < 0.4);
 
-                if (tileHeight > 0.7 || rand.nextDouble() < 0.02) {
+                if (tileHeight > 0.25 && tileHeight < 0.55 || rand.nextDouble() < 0.02) {
                     height = Tile.Height.mountain;
-                } else if (tileHeight > 0.5 || rand.nextDouble() < 0.02) {
+                } else if (tileHeight > 0 || rand.nextDouble() < 0.02) {
                     height = Tile.Height.hill;
                 } else {
                     height = Tile.Height.flat;
