@@ -4,17 +4,16 @@ import obj.Player;
 import obj.building.interfaces.TrainerBuilding;
 import obj.soldier.wizard.*;
 import obj.soldier.wizard.functional.Magic;
+import util.MaterialCost;
 import util.Position;
 
 public class WizardsTower extends Building implements TrainerBuilding {
-    private final Position POSITION;
     private final Magic magic;
     private boolean operation;
     private int operationTime;
 
-    public WizardsTower(Position POSITION, Magic magic) {
-        super(null);
-        this.POSITION = POSITION;
+    public WizardsTower(Position position, Magic magic) {
+        super(null, position);
         this.magic = magic;
         this.operation = false;
         this.operationTime = 0;
@@ -39,10 +38,10 @@ public class WizardsTower extends Building implements TrainerBuilding {
         if (this.operationTime == 0 && this.operation) {
             Wizard wizard = null;
             switch (magic) {
-                case defenceBoost -> wizard = new DefenceWizard(null, this.owner, this.POSITION);
-                case healthBoost -> wizard = new HealerWizard(null, this.owner, this.POSITION);
-                case speedBoost -> wizard = new SpeedWizard(null, this.owner, this.POSITION);
-                case damageBoost -> wizard = new StrengthWizard(null, this.owner, this.POSITION);
+                case defenceBoost -> wizard = new DefenceWizard(null, this.owner, this.position);
+                case healthBoost -> wizard = new HealerWizard(null, this.owner, this.position);
+                case speedBoost -> wizard = new SpeedWizard(null, this.owner, this.position);
+                case damageBoost -> wizard = new StrengthWizard(null, this.owner, this.position);
             }
             this.owner.getSoldiers().addFirst(wizard);
             this.operation = false;
@@ -50,4 +49,13 @@ public class WizardsTower extends Building implements TrainerBuilding {
     }
 
     public void capture(Player player) {this.owner = player;}
+
+    public Magic getMagic() {
+        return magic;
+    }
+
+    @Override
+    public MaterialCost getBuildingPrice() {
+        return null;
+    }
 }

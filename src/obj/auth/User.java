@@ -14,7 +14,7 @@ public class User implements DBSerializable {
     private String username;
     private long hashedPassword;
 
-    private User(String displayName, String username, String password) {
+    public User(String displayName, String username, String password) {
         synchronized (DB) {
             this.ID = DB.getNextID();
         }

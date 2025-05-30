@@ -9,7 +9,7 @@ import util.map.Map;
 
 public class Player {
     private final User user;
-    private final Game game;
+    private Game game;
     private final Tribe tribe;
     private final LinkedList<Castle> castles;
     private final LinkedList<Soldier> soldiers;
@@ -128,6 +128,10 @@ public class Player {
 
     public Game getGame() {
         return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 
     public LinkedList<Castle> getCastles() {
