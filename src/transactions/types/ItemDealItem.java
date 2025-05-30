@@ -2,16 +2,16 @@ package transactions.types;
 
 import transactions.Transaction;
 
-public class Weapon implements Transaction {
-    private final obj.Weapon type;
+public class ItemDealItem implements Transaction {
+    private final ItemTypesDealItem type;
     private int count;
 
-    public Weapon(int count, obj.Weapon type) {
+    public ItemDealItem(int count, ItemTypesDealItem type) {
         this.type = type;
         this.count = count;
     }
 
-    public obj.Weapon getType() {
+    public ItemTypesDealItem getType() {
         return type;
     }
 

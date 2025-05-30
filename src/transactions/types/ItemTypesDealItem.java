@@ -1,6 +1,6 @@
 package transactions.types;
 
-public enum ItemTypes {
+public enum ItemTypesDealItem {
     wealth,
     food,
     stone,

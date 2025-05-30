@@ -1,9 +1,10 @@
 package transactions;
 
 import obj.Player;
-import transactions.types.Castle;
-import transactions.types.Item;
-import transactions.types.Weapon;
+import transactions.exceptions.ItemDoesntExistException;
+import transactions.types.CastleDealItem;
+import transactions.types.ItemDealItem;
+import transactions.types.WeaponDealItem;
 import util.LinkedList;
 
 public class Deal {
@@ -132,7 +133,7 @@ public class Deal {
         Transaction transaction;
         for (int i = 0; i < list.size(); i++) {
             transaction = list.get(i);
-            if (transaction instanceof Item item) {
+            if (transaction instanceof ItemDealItem item) {
                 switch (item.getType()) {
                     case wealth:
                         if (dealer.getWealth() < item.getCount())
@@ -150,8 +151,8 @@ public class Deal {
                         if (dealer.getWoodCount() < item.getCount())
                             return false;
                 }
-            } else if (transaction instanceof Weapon weapon) {
-                if (/*sender.getWeapons().search(weapon.getType())*/ 0 < weapon.getCount()) // todo <getting weapon count>
+            } else if (transaction instanceof WeaponDealItem weapon) {
+                if (dealer1.getWeapons().get(weapon.getType()) < weapon.getCount())
                     return false;
             }
         }
@@ -168,7 +169,7 @@ public class Deal {
         }
         for (int i = 0; i < list.size(); i++) {
             Transaction transaction = list.get(i);
-            if (transaction instanceof Item item) {
+            if (transaction instanceof ItemDealItem item) {
                 switch (item.getType()) {
                     case wealth -> sender.spendWealth(item.getCount());
                     case food -> sender.spendFood(item.getCount());
@@ -176,8 +177,12 @@ public class Deal {
                     case iron -> sender.spendIron(item.getCount());
                     case wood -> sender.spendWood(item.getCount());
                 }
-            } else if (transaction instanceof Weapon weapon) {
-                sender.removeWeapon(weapon.getType(), weapon.getCount());
+            } else if (transaction instanceof WeaponDealItem weapon) {
+                try {
+                    sender.removeWeapon(weapon.getType(), weapon.getCount());
+                } catch (ItemDoesntExistException e) {
+                    System.out.println("Item doesnt exist");
+                }
             }
         }
         return true;
@@ -187,7 +192,7 @@ public class Deal {
         Transaction transaction;
         for (int i = 0; i < offer.size(); i++) {
             transaction = offer.get(i);
-            if (transaction instanceof Item item) {
+            if (transaction instanceof ItemDealItem item) {
                 switch (item.getType()) {
                     case wealth -> receiver.increaseWealth(item.getCount());
                     case food -> receiver.increaseFood(item.getCount());
@@ -195,9 +200,9 @@ public class Deal {
                     case iron -> receiver.increaseIron(item.getCount());
                     case wood -> receiver.increaseWood(item.getCount());
                 }
-            } else if (transaction instanceof Weapon weapon) {
+            } else if (transaction instanceof WeaponDealItem weapon) {
                 receiver.addWeapon(weapon.getType(), weapon.getCount());
-            } else if (transaction instanceof Castle castle) {
+            } else if (transaction instanceof CastleDealItem castle) {
                 try {
                     if (castle.getCastle().getOwner() == sender)
                         castle.getCastle().capture(receiver);

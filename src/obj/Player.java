@@ -4,6 +4,7 @@ import obj.auth.User;
 import obj.building.Castle;
 import obj.game.Game;
 import obj.soldier.Soldier;
+import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
 import util.map.Map;
 
@@ -143,14 +144,35 @@ public class Player {
     }
 
     public void addWeapon(Weapon weapon) {
+        this.addWeapon(weapon,1);
+    }
+
+    public void addWeapon(Weapon weapon, int count) {
         if (this.weapons.exsits(weapon)) {
             this.weapons.set(
                     weapon,
-                    this.weapons.get(weapon) + 1
+                    this.weapons.get(weapon) + count
             );
             return;
         }
-        this.weapons.addFirst(weapon, 1);
+        this.weapons.addFirst(weapon, count);
+    }
+
+    public void removeWeapon(Weapon weapon) throws ItemDoesntExistException {
+        this.removeWeapon(weapon, 1);
+    }
+
+    public void removeWeapon(Weapon weapon, int count) throws ItemDoesntExistException {
+        if (this.weapons.exsits(weapon)) {
+            int newCount = Math.max(0, this.weapons.get(weapon) - count);
+            if (newCount == 0) {
+                this.weapons.removeFromKey(weapon);
+                return;
+            }
+            this.weapons.set(weapon, newCount);
+            return;
+        }
+        throw new ItemDoesntExistException();
     }
 
     public boolean[][] getVision() {
