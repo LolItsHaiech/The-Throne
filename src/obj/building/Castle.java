@@ -5,20 +5,19 @@ import obj.building.interfaces.CollectorBuilding;
 import obj.building.interfaces.TrainerBuilding;
 import obj.map.Tile;
 import obj.soldier.Commander;
+import util.MaterialCost;
 import util.Position;
 
 public class Castle extends Building implements CollectorBuilding, TrainerBuilding {
-    private final Position POSITION;
     private boolean operation;
     private int operationTime;
     private int level;
 
     public Castle(Player owner, Position position) {
-        super(owner);
+        super(owner, position);
         this.level = 1;
         this.operation = false;
         this.operationTime = 0;
-        this.POSITION = position;
     }
 
     public int getLevel() {
@@ -59,7 +58,7 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
         if (this.operationTime > 0)
             this.operationTime--;
         if (this.operationTime == 0 && this.operation) {
-            Commander unit = new Commander(null, this.owner, this.POSITION);// todo -> set weapon
+            Commander unit = new Commander(null, this.owner, this.position);// todo -> set weapon
             this.owner.getSoldiers().addFirst(unit);
             this.operation = false;
         }
@@ -77,5 +76,10 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
                 }
             }
         }
+    }
+
+    @Override
+    public MaterialCost getBuildingPrice() {
+        return new MaterialCost(50,10,10,0,5);
     }
 }

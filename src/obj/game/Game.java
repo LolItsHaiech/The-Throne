@@ -8,6 +8,7 @@ import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
 import obj.soldier.Soldier;
 import obj.soldier.wizard.functional.Magic;
+import util.LinkedList;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
@@ -91,11 +92,12 @@ public abstract class Game {
                 do {
                     x0 = rand.nextInt(mapWidth);
                     y0 = rand.nextInt(mapHeight);
-//                    System.out.println(x0 + ", " + y0);
                 } while (map[x0][y0].getBuilding() != null);
                 map[x0][y0].setBuilding(
                         new MysticalContainer(me.getKey(), me.getValue(), new Position(x0, y0))
                 );
+                map[x0][y0].setTree(false);
+                map[x0][y0].setHeight(Tile.Height.flat);
             }
         }
 
@@ -109,6 +111,8 @@ public abstract class Game {
             Castle castle = new Castle(player, new Position(x, y));
             player.getCastles().addFirst(castle);
             map[x][y].setBuilding(castle);
+            map[x][y].setTree(false);
+            map[x][y].setHeight(Tile.Height.flat);
         }
         for (Magic magic : Magic.values()) {
             int x, y;
@@ -117,6 +121,7 @@ public abstract class Game {
                 y = rand.nextInt(mapHeight);
             } while (map[x][y].getBuilding() != null);
             map[x][y].setBuilding(new WizardsTower(new Position(x, y), magic));
+            map[x][y].setTree(false);
         }
         return map;
     }

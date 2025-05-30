@@ -3,16 +3,15 @@ package obj.building;
 import obj.Player;
 import obj.building.interfaces.TrainerBuilding;
 import obj.soldier.Warrior;
+import util.MaterialCost;
 import util.Position;
 
-public class Barracks extends Building implements TrainerBuilding {
-    private final Position POSITION;
+public class Barrack extends Building implements TrainerBuilding {
     private boolean operation;
     private int operationTime;
 
-    public Barracks(Player owner, Position POSITION) {
-        super(owner);
-        this.POSITION = POSITION;
+    public Barrack(Player owner, Position position) {
+        super(owner, position);
         this.operation = false;
         this.operationTime = 0;
     }
@@ -34,8 +33,13 @@ public class Barracks extends Building implements TrainerBuilding {
         if (this.operationTime > 0)
             this.operationTime--;
         if (this.operationTime == 0 && this.operation) {
-            this.owner.getSoldiers().addFirst(new Warrior(null, this.owner, this.POSITION));// todo -> set weapon
+            this.owner.getSoldiers().addFirst(new Warrior(null, this.owner, this.position));// todo -> set weapon
             this.operation = false;
         }
+    }
+
+    @Override
+    public MaterialCost getBuildingPrice() {
+        return new MaterialCost(10, 5,5,5, 0);
     }
 }

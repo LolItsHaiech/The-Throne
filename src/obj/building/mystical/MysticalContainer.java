@@ -2,12 +2,12 @@ package obj.building.mystical;
 
 import obj.Weapon;
 import obj.building.Building;
+import util.MaterialCost;
 import util.Position;
 import util.map.Map;
 import util.map.MapEntry;
 
 public class MysticalContainer extends Building {
-    private Position position;
     public static Map<String, Weapon> containers = new Map<>();
 
     private final String name;
@@ -15,13 +15,13 @@ public class MysticalContainer extends Building {
 
     static {
         MapEntry<String, Weapon>[] a = new MapEntry[]{
-                new MapEntry<>("The Stone", Weapon.excalibur),
-                new MapEntry<>("Oland", Weapon.mjolnir),
-                new MapEntry<>("The Well", Weapon.spearOfLugh),
-                new MapEntry<>("The Maelstrom", Weapon.tridentOfPoseidon),
-                new MapEntry<>("Sarkel", Weapon.axeOfPerun),
+                new MapEntry<>("Atlantis remains", Weapon.tridentOfPoseidon),
                 new MapEntry<>("Hall Of Kings", Weapon.anduril),
-                new MapEntry<>("The Rift", Weapon.harpe)
+                new MapEntry<>("Oland", Weapon.mjolnir),
+                new MapEntry<>("Sarkel", Weapon.axeOfPerun),
+                new MapEntry<>("The Rift", Weapon.harpe),
+                new MapEntry<>("The Stone", Weapon.excalibur),
+                new MapEntry<>("The Well", Weapon.spearOfLugh),
         };
         for (MapEntry<String, Weapon> me : a) {
             containers.addFirst(me);
@@ -29,10 +29,9 @@ public class MysticalContainer extends Building {
     }
 
     public MysticalContainer(String name, Weapon weapon, Position position) {
-        super(null);
+        super(null, position);
         this.name = name;
         this.weapon = weapon;
-        this.position = position;
     }
 
     public Weapon getWeapon() {
@@ -45,5 +44,10 @@ public class MysticalContainer extends Building {
 
     public void setPos(Position position) {
         this.position = position;
+    }
+
+    @Override
+    public MaterialCost getBuildingPrice() {
+        return null;
     }
 }

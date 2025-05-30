@@ -7,8 +7,8 @@ public class Tile {
     private Building building;
     private Soldier soldier;
     private final Biome biome;
-    private final boolean tree;
-    private final Height height;
+    private boolean tree;
+    private Height height;
 
     public Tile(Biome biome, Height height, boolean tree) {
         this.biome = biome;
@@ -36,6 +36,14 @@ public class Tile {
 
     public boolean hasTree() {
         return this.tree;
+    }
+
+    public void setTree(boolean tree) {
+        this.tree = tree;
+    }
+
+    public void setHeight(Height height) {
+        this.height = height;
     }
 
     public Biome getBiome() {
@@ -66,24 +74,26 @@ public class Tile {
     }
 
     public enum Height {
-        flat(0,0),
+        flat(0, 0),
         hill(1, -1),
         mountain(2, -2),
         ;
+
         Height(int rangeModifier, int speedModifier) {
             this.rangeModifier = rangeModifier;
             this.speedModifier = speedModifier;
         }
+
         public final int rangeModifier;
         public final int speedModifier;
     }
 
     public int getSpeedModifier() {
-        return this.biome.speedModifier + this.height.speedModifier + (this.tree?-1:0);
+        return this.biome.speedModifier + this.height.speedModifier + (this.tree ? -1 : 0);
     }
 
     public int getRangeModifier() {
-        return this.height.rangeModifier + (this.tree?-1:0);
+        return this.height.rangeModifier + (this.tree ? -1 : 0);
     }
 
     public int getDefenceModifier() {

@@ -1,0 +1,22 @@
+* {
+    -fx-font-size: 20px;
+}
+
+.button {
+    -fx-color-label-visible: black;
+    -fx-padding: 4px;
+    -fx-background-color: aqua;
+    -fx-border-color: black;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 4px;
+    -fx-border-width: 2px;
+}
+
+
+.button:hover {
+    -fx-background-color: #00b8b8;
+}
+
+.button:selected {
+    -fx-background-color: #008a8a;
+}

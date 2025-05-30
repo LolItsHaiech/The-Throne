@@ -1,6 +1,5 @@
 package db;
 
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Iterator;
@@ -24,7 +23,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
                      : new ObjectOutputStream(fos)) {
             oos.writeObject(obj);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             return false;
         }
         return true;
@@ -78,7 +77,6 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     }
 
 
-    @NotNull
     @Override
     public Iterator<T> iterator() {
         try {
