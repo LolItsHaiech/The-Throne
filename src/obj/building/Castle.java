@@ -82,4 +82,9 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
     public MaterialCost getBuildingPrice() {
         return new MaterialCost(50,10,10,0,5);
     }
+
+    @Override
+    public int getDefenceModifier() {
+        return 2;
+    }
 }

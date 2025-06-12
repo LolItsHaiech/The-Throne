@@ -93,10 +93,10 @@ public class Tile {
     }
 
     public int getRangeModifier() {
-        return this.height.rangeModifier + (this.tree ? -1 : 0);
+        return this.height.rangeModifier + (this.tree ? -1 : 0) + this.building.getRangeModifier();
     }
 
     public int getDefenceModifier() {
-        return this.biome.defenceModifier;
+        return this.biome.defenceModifier + this.building.getDefenceModifier();
     }
 }

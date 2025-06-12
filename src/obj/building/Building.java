@@ -47,4 +47,12 @@ public abstract class Building {
         }
         return allowedBuildings;
     }
+
+    public int getRangeModifier() {
+        return 0;
+    }
+
+    public int getDefenceModifier() {
+        return 0;
+    }
 }
