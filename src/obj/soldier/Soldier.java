@@ -147,7 +147,7 @@ public abstract class Soldier {
             return false;
         }
 
-        if (this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].getSoldier()!=null) {
+        if (this.getPlayer().getGame().getMap()[newPos.x()][newPos.y()].getSoldier() != null) {
             return false;
         }
 
@@ -158,6 +158,7 @@ public abstract class Soldier {
         this.hasMoved = true;
         return true;
     }
+
     public boolean hasMoved() {
         return this.hasMoved;
     }
