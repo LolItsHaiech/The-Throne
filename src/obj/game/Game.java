@@ -2,8 +2,10 @@ package obj.game;
 
 import obj.Player;
 import obj.Weapon;
+import obj.building.Building;
 import obj.building.Castle;
 import obj.building.WizardsTower;
+import obj.building.interfaces.CollectorBuilding;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
 import obj.soldier.Soldier;
@@ -13,6 +15,7 @@ import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
 
+import java.util.Collection;
 import java.util.Random;
 
 public abstract class Game {
@@ -161,10 +164,30 @@ public abstract class Game {
     }
 
     public void nextTurn() {
-        this.turn = (this.turn + 1) % this.players.length;
+        int newTurn = (this.turn + 1) % this.players.length;
         if (this.turn == 0) {
             this.turnCount++;
         }
+
+        for (Tile[] tiles : this.map) {
+            for (Tile tile : tiles) {
+                Building building = tile.getBuilding();
+                Soldier soldier = tile.getSoldier();
+
+                if (building.getOwner()==this.players[this.turn] &&
+                        building instanceof CollectorBuilding collectorBuilding) {
+                    collectorBuilding.collect();
+                }
+
+                if (soldier.getPlayer()==this.players[this.turn]) {
+                    soldier.onTurnEnd();
+                } else if (soldier.getPlayer()==this.players[newTurn]){
+                    soldier.onTurnStart();
+                }
+            }
+        }
+
+        this.turn = newTurn;
     }
 
     public Player GetActivePlayer() {
