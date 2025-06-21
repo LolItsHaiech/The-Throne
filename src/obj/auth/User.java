@@ -1,6 +1,6 @@
 package obj.auth;
 
-import db.DBSerializable;
+import db.interfaces.DBSerializable;
 import db.Database;
 import exceptions.AuthenticationException;
 import util.StringUtils;
@@ -83,5 +83,10 @@ public class User implements DBSerializable {
     @Override
     public int getID() {
         return this.ID;
+    }
+
+    @Override
+    public void save() {
+        DB.update(this);
     }
 }

@@ -1,24 +1,32 @@
 package obj.game;
 
+import db.interfaces.DBSerializable;
+import db.Database;
 import obj.Player;
 import obj.Weapon;
 import obj.building.Building;
 import obj.building.Castle;
-import obj.building.WizardsTower;
+import obj.building.WizardTower;
 import obj.building.interfaces.CollectorBuilding;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
 import obj.soldier.Soldier;
 import obj.soldier.wizard.functional.Magic;
-import util.LinkedList;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
 
-import java.util.Collection;
+import java.util.Objects;
 import java.util.Random;
 
-public abstract class Game {
+
+// todo major bug when saving game in file
+// it's probably cuz the Database but idk
+
+public abstract class Game implements DBSerializable {
+    private static final Database<Game> DB = new Database<>("GAMES");
+
+    private final int ID;
     protected final Player[] players;
     protected final Tile[][] map;
     private int turn;
@@ -31,6 +39,9 @@ public abstract class Game {
     }
 
     public Game(Player[] players, int mapWidth, int mapHeight, long seed) {
+        synchronized (DB) {
+            this.ID = DB.getNextID();
+        }
         this.players = players;
         this.SEED = seed;
         this.turn = 0;
@@ -52,6 +63,7 @@ public abstract class Game {
     }
 
     public abstract boolean isEnded();
+    public abstract Player getWinner();
 
     private Tile[][] generateMap(int mapWidth, int mapHeight) {
         Tile[][] map = new Tile[mapWidth][mapHeight];
@@ -123,7 +135,7 @@ public abstract class Game {
                 x = rand.nextInt(mapWidth);
                 y = rand.nextInt(mapHeight);
             } while (map[x][y].getBuilding() != null);
-            map[x][y].setBuilding(new WizardsTower(new Position(x, y), magic));
+            map[x][y].setBuilding(new WizardTower(new Position(x, y), magic));
             map[x][y].setTree(false);
         }
         return map;
@@ -173,16 +185,18 @@ public abstract class Game {
             for (Tile tile : tiles) {
                 Building building = tile.getBuilding();
                 Soldier soldier = tile.getSoldier();
-
-                if (building.getOwner()==this.players[this.turn] &&
+                if (building != null &&
+                        Objects.equals(building.getOwner(), this.players[this.turn]) &&
                         building instanceof CollectorBuilding collectorBuilding) {
                     collectorBuilding.collect();
                 }
 
-                if (soldier.getPlayer()==this.players[this.turn]) {
-                    soldier.onTurnEnd();
-                } else if (soldier.getPlayer()==this.players[newTurn]){
-                    soldier.onTurnStart();
+                if (soldier != null) {
+                    if (soldier.getPlayer() == this.players[this.turn]) {
+                        soldier.onTurnEnd();
+                    } else if (soldier.getPlayer() == this.players[newTurn]) {
+                        soldier.onTurnStart();
+                    }
                 }
             }
         }
@@ -211,5 +225,15 @@ public abstract class Game {
             }
         }
         return null;
+    }
+
+    @Override
+    public int getID() {
+        return this.ID;
+    }
+
+    @Override
+    public void save() {
+        DB.update(this);
     }
 }

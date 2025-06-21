@@ -8,7 +8,9 @@ import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
 import util.map.Map;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable {
     private final User user;
     private Game game;
     private final Tribe tribe;

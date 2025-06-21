@@ -16,7 +16,6 @@ public abstract class Soldier {
     private int defenceModifier;
 
     private Magic magic;
-    // todo decrement every turn;
     private int effectDurationLeft;
     private boolean hasMoved;
     private boolean hasAttacked;

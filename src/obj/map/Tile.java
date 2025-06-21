@@ -3,7 +3,9 @@ package obj.map;
 import obj.building.Building;
 import obj.soldier.Soldier;
 
-public class Tile {
+import java.io.Serializable;
+
+public class Tile implements Serializable {
     private Building building;
     private Soldier soldier;
     private final Biome biome;

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" spacing="10" padding="10">
+    <Label fx:id="buildingNameLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="10" vgap="10">
+        <Label text="Wood:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="woodField" promptText="Enter amount" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Food:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="foodField" promptText="Enter amount" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Stone:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="stoneField" promptText="Enter amount" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Wealth:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="wealthField" promptText="Enter amount" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    </GridPane>
+</VBox>

@@ -1,6 +1,8 @@
 package db;
 
 
+import db.interfaces.DBSerializable;
+
 import java.io.*;
 import java.util.Iterator;
 

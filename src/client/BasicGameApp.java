@@ -1,5 +1,6 @@
 package client;
 
+import client.render.RenderSoldier;
 import client.render.RenderTile;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
@@ -19,12 +20,17 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import obj.Player;
 import obj.Tribe;
+import obj.Weapon;
 import obj.auth.User;
 import obj.building.*;
 import obj.building.interfaces.functional.BuildingFactory;
 import obj.building.mystical.MysticalContainer;
 import obj.game.DominationGame;
+import obj.game.Game;
 import obj.map.Tile;
+import obj.soldier.Soldier;
+import obj.soldier.Warrior;
+import util.LinkedList;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
@@ -40,8 +46,8 @@ public class BasicGameApp extends GameApplication {
     private static final int TILE_WIDTH = 40;
     private static final int TILE_HEIGHT = 20;
     private static final int TILE_HEIGHT_OFFSET = 20;
-    private static final int MAP_WIDTH = 100;
-    private static final int MAP_HEIGHT = 100;
+    private static final int MAP_WIDTH = 20;
+    private static final int MAP_HEIGHT = 20;
 
     private static final int SCREEN_WIDTH = 1280;
     private static final int SCREEN_HEIGHT = 720;
@@ -59,14 +65,21 @@ public class BasicGameApp extends GameApplication {
     private static final float STAR_OPACITY_MIN = 10f;
     private static final float STAR_OPACITY_MAX = 250f;
 
-    private static final Map<String, Image> textureCache = new HashMap<>();
+    private static final HashMap<String, Image> textureCache = new HashMap<>();
 
-    private Star[] stars;
     private Player player;
+    private Game game;
     private Tile[][] map;
     private RenderTile highlightedTile;
 
+    private Star[] stars;
+    private LinkedList<RenderSoldier> renderedSoldiers;
+
+    private boolean isSoldierMoving;
+    private boolean isYourTurn;
+
     private VBox tileMenu;
+    private Texture skipButton;
 
 
     @Override
@@ -76,7 +89,7 @@ public class BasicGameApp extends GameApplication {
         settings.setTitle("Isometric Map Renderer");
         settings.setVersion("0.1");
         settings.setFullScreenAllowed(true);
-        settings.setFullScreenFromStart(true);
+        settings.setFullScreenFromStart(false);
     }
 
     @Override
@@ -86,13 +99,20 @@ public class BasicGameApp extends GameApplication {
         players[1] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
         players[2] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
         players[3] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        DominationGame game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT);
+
+        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT);
         for (Player player : players) {
-            player.setGame(game);
+            player.setGame(this.game);
         }
-        this.map = game.getMap();
+
+        this.game.getTile(new Position(0, 0)).setSoldier(new Warrior(Weapon.harpe, this.player, new Position(0, 0)));
+
+        this.map = this.game.getMap();
         this.highlightedTile = null;
         this.stars = new Star[STAR_COUNT];
+        this.isYourTurn = this.game.GetActivePlayer().equals(this.player);
+        this.isSoldierMoving = false;
+        this.renderedSoldiers = new LinkedList<>();
 
         getGameScene().setBackgroundColor(
                 new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
@@ -139,12 +159,22 @@ public class BasicGameApp extends GameApplication {
             for (int y = 0; y < MAP_HEIGHT; y++) {
                 Position coords = getIsometricToCoords(x, y);
                 Tile tile = map[x][y];
-                entityBuilder(coords.x(), coords.y(), x + y, 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
+                entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
                 if (map[x][y].hasTree()) {
-                    entityBuilder(coords.x(), coords.y(), x + y, 4, "features/tree.png");
+                    entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
                 }
                 renderBuilding(tile, x, y);
+                renderSoldier(tile, x, y);
             }
+        }
+    }
+
+    private void renderSoldier(Tile tile, int x, int y) {
+        Soldier soldier = tile.getSoldier();
+        Position coords = getIsometricToCoords(x, y);
+        if (soldier != null) {
+            this.renderedSoldiers.addFirst(new RenderSoldier(
+                    soldier, coords, entityBuilder(coords.x(), coords.y(), 5, "soldiers/Untitled.png")));
         }
     }
 
@@ -153,21 +183,21 @@ public class BasicGameApp extends GameApplication {
         Position coords = getIsometricToCoords(x, y);
         if (building != null) {
             switch (building) {
-                case Castle ignored -> entityBuilder(coords.x(), coords.y(), x + y, 4, "buildings/castle.png");
-                case WizardsTower wizardsTower -> {
-                    String magic = wizardsTower.getMagic().toString();
+                case Castle ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/castle.png");
+                case WizardTower wizardTower -> {
+                    String magic = wizardTower.getMagic().toString();
                     String assetName = String.format("buildings/wizardtowers/%stower.png", magic.substring(0, magic.length() - 5));
-                    entityBuilder(coords.x(), coords.y(), x + y, 4, assetName);
+                    entityBuilder(coords.x(), coords.y(), 4, assetName);
                 }
-                case Barrack ignored -> entityBuilder(coords.x(), coords.y(), x + y, 4, "buildings/barrack.png");
-                case Farmland ignored -> entityBuilder(coords.x(), coords.y(), x + y, 4, "buildings/farmland.png");
-                case LumberHut ignored -> entityBuilder(coords.x(), coords.y(), x + y, 3, "buildings/lumberhut.png");
+                case Barrack ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/barrack.png");
+                case Farmland ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/farmland.png");
+                case LumberHut ignored -> entityBuilder(coords.x(), coords.y(), 3, "buildings/lumberhut.png");
                 case Mine ignored ->
-                        entityBuilder(coords.x(), coords.y(), x + y, 4, String.format("buildings/mine_%s.png", tile.getHeight().toString()));
+                        entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mine_%s.png", tile.getHeight().toString()));
                 case MysticalContainer container -> {
                     String name = container.getName().replace(' ', '_').toLowerCase();
                     System.out.println(name);
-                    entityBuilder(coords.x(), coords.y(), x + y, 4, String.format("buildings/mystical/%s.png", name));
+                    entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mystical/%s.png", name));
                 }
                 default -> {
                 }
@@ -189,7 +219,7 @@ public class BasicGameApp extends GameApplication {
         this.highlightedTile = new RenderTile(
                 this.map[x][y],
                 new Position(x, y),
-                entityBuilder(isoCoords.x(), isoCoords.y(), x + y, 1, "tiles/selected_tile.png")
+                entityBuilder(isoCoords.x(), isoCoords.y(), 1, "tiles/selected_tile.png")
         );
         this.updateTileMenu();
     }
@@ -254,11 +284,13 @@ public class BasicGameApp extends GameApplication {
 
     @Override
     protected void initUI() {
-        stringBuilderUI(110, "wealth", "Wealth: %d$");
-        stringBuilderUI(130, "wood", "Wood: %d");
-        stringBuilderUI(150, "stone", "Stone: %d");
-        stringBuilderUI(170, "food", "Food: %d");
-        stringBuilderUI(190, "iron", "Iron: %d");
+        if (!this.isYourTurn)
+            stringBuilderUI(110, "not your turn");
+        stringBuilderUI(130, "wealth", "Wealth: %d$");
+        stringBuilderUI(150, "wood", "Wood: %d");
+        stringBuilderUI(170, "stone", "Stone: %d");
+        stringBuilderUI(190, "food", "Food: %d");
+        stringBuilderUI(210, "iron", "Iron: %d");
 
         tileMenu = new VBox(10);
         tileMenu.setTranslateX(SCREEN_WIDTH - 300);
@@ -268,24 +300,34 @@ public class BasicGameApp extends GameApplication {
         tileMenu.setMinWidth(200);
         getGameScene().addUINode(tileMenu);
 
-        Image image = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
-        Texture texture = new Texture(image);
-        texture.hoverProperty().addListener((observable, oldValue, newValue) -> {
-            Image img;
-            if (newValue) {
-                img = textureCache.computeIfAbsent("ui/end_turn_hovered.png", file -> getAssetLoader().loadImage(file));
-            } else {
-                img = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
-            }
-            texture.setImage(img);
-        });
-        texture.setOnMouseClicked(mouseEvent -> {
-            System.out.println("selected");
-            texture.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
-        });
-        texture.setX(SCREEN_WIDTH - 230);
-        texture.setY(SCREEN_HEIGHT - 160);
-        addUINode(texture);
+        if (this.isYourTurn) {
+            Image image = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
+            this.skipButton = new Texture(image);
+            this.skipButton.hoverProperty().addListener((observable, oldValue, newValue) -> {
+                Image img;
+                if (newValue) {
+                    img = textureCache.computeIfAbsent("ui/end_turn_hovered.png", file -> getAssetLoader().loadImage(file));
+                } else {
+                    img = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
+                }
+                this.skipButton.setImage(img);
+            });
+            this.skipButton.setOnMouseClicked(mouseEvent -> {
+                if (this.isYourTurn) {
+                    stringBuilderUI(110, "not your turn");
+                    this.game.nextTurn();
+                    this.game.save();
+                    this.isYourTurn = false;
+                    removeUINode(this.tileMenu);
+                    removeUINode(this.skipButton);
+                }
+
+                this.skipButton.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
+            });
+            this.skipButton.setX(SCREEN_WIDTH - 230);
+            this.skipButton.setY(SCREEN_HEIGHT - 160);
+            addUINode(this.skipButton);
+        }
     }
 
     @Override
@@ -294,10 +336,27 @@ public class BasicGameApp extends GameApplication {
 
         FXGL.onBtn(MouseButton.PRIMARY, () -> {
             Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
-            renderHighlightedTile(pos.x(), pos.y());
+            if (this.isSoldierMoving) {
+                Soldier soldier = this.game.getTile(this.highlightedTile.position()).getSoldier();
+                if (soldier != null && !soldier.hasMoved()) {
+                    this.isSoldierMoving = false;
+
+                    if (this.game.getTile(this.highlightedTile.position()).getSoldier().moveTo(pos)) {
+                        for (RenderSoldier renderedSoldier : this.renderedSoldiers) {
+                            renderedSoldier.setPosition(pos);
+                            Position newPos = getIsometricToCoords(pos.x(), pos.y());
+                            renderedSoldier.getEntity().setX(newPos.x());
+                            renderedSoldier.getEntity().setY(newPos.y());
+                            renderedSoldier.getEntity().setZIndex(getZIndex(pos.x(), pos.y(), 5));
+                        }
+                    }
+                }
+            } else {
+                renderHighlightedTile(pos.x(), pos.y());
+            }
         });
 
-        FXGL.onKeyUp(KeyCode.F11, ()->{
+        FXGL.onKeyUp(KeyCode.F11, () -> {
             getSettings().getFullScreen().set(!getSettings().getFullScreen().get());
             getGameScene().getViewport().setHeight(SCREEN_HEIGHT);
             getGameScene().getViewport().setWidth(SCREEN_WIDTH);
@@ -339,6 +398,8 @@ public class BasicGameApp extends GameApplication {
     }
 
     private void updateTileMenu() {
+        if (!this.isYourTurn)
+            return; // todo not always
 
 
         this.tileMenu.getChildren().clear();
@@ -363,40 +424,44 @@ public class BasicGameApp extends GameApplication {
                             factory.create(this.player, this.highlightedTile.position())
                     );
                     renderBuilding(tile, this.highlightedTile.position().x(), this.highlightedTile.position().y());
+
                     updateTileMenu();
                 });
                 this.tileMenu.getChildren().add(btn);
             }
         }
 
-        if (tile.getSoldier() != null) {
-            Button soldierInfo = new Button("View Soldier");
-            soldierInfo.setMinWidth(200);
-            soldierInfo.setOnAction(e -> System.out.println("Soldier: " + tile.getSoldier().toString()));
-
+        if (tile.getSoldier() != null && !tile.getSoldier().hasMoved()) {
             Button moveSoldier = new Button("Move Soldier");
             moveSoldier.setMinWidth(200);
-            moveSoldier.setOnAction(e -> System.out.println("Moving soldier..."));
+            moveSoldier.setOnAction(e -> this.isSoldierMoving = true); // todo
 
-            this.tileMenu.getChildren().addAll(soldierInfo, moveSoldier);
+            this.tileMenu.getChildren().add(moveSoldier);
         }
     }
 
-    private static Entity entityBuilder(int x, int y, int z, int level, String spriteFile) {
+    private static int getZIndex(int x, int y, int level) {
+        return 6 * (x+y) + level;
+    }
+
+    private static Entity entityBuilder(int x, int y, int level, String spriteFile) {
         Image image = textureCache.computeIfAbsent(spriteFile, file -> getAssetLoader().loadImage(file));
+        Position pos = getCoordsToIsometric(x, y);
 
         Texture texture = new Texture(image);
         texture.setSmooth(false);
         return FXGL.entityBuilder()
                 .at(x, y)
                 .view(texture)
-                .zIndex(5 * z + level)
+                .zIndex(getZIndex(pos.x(), pos.y(),level))
                 .buildAndAttach();
     }
 
-    private static void stringBuilderUI(int y, String property, String value) {
+
+
+    private static void stringBuilderUI(int x, int y, String property, String value) {
         Text textPixels = new Text();
-        textPixels.setTranslateX(100);
+        textPixels.setTranslateX(x);
         textPixels.setTranslateY(y);
         textPixels.setTextAlignment(TextAlignment.LEFT);
         textPixels.setFill(Color.WHITE);
@@ -405,6 +470,21 @@ public class BasicGameApp extends GameApplication {
                                                .intProperty(property)
                                                .asString(value));
         getGameScene().addUINode(textPixels);
+    }
+
+    private static void stringBuilderUI(int y, String value) {
+        Text textPixels = new Text();
+        textPixels.setTranslateX(100);
+        textPixels.setTranslateY(y);
+        textPixels.setTextAlignment(TextAlignment.LEFT);
+        textPixels.setFill(Color.WHITE);
+
+        textPixels.textProperty().set(value);
+        getGameScene().addUINode(textPixels);
+    }
+
+    private static void stringBuilderUI(int y, String property, String value) {
+        stringBuilderUI(100, y, property, value);
     }
 
     public static void main(String[] args) {
