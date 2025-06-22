@@ -1,5 +1,6 @@
 package util;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 public class LinkedList<T> implements Iterable<T> {
@@ -99,7 +100,7 @@ public class LinkedList<T> implements Iterable<T> {
         } catch (NullPointerException ignored) {}
     }
 
-    private class Node {
+    private class Node implements Serializable {
         public T data;
         public Node next;
 

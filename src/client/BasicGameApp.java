@@ -10,6 +10,7 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.scene.CSS;
 import com.almasb.fxgl.texture.Texture;
+import com.google.gson.Gson;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -36,6 +37,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.geometry.Pos;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;

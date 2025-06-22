@@ -7,7 +7,9 @@ import util.LinkedList;
 import util.MaterialCost;
 import util.Position;
 
-public abstract class Building {
+import java.io.Serializable;
+
+public abstract class Building implements Serializable {
     protected Player owner;
     protected Position position;
 

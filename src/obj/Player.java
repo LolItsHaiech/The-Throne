@@ -6,16 +6,19 @@ import obj.game.Game;
 import obj.soldier.Soldier;
 import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
-import util.map.Map;
+
+import java.util.HashMap;
+import java.util.Map; // todo
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Player implements Serializable {
     private final User user;
     private Game game;
     private final Tribe tribe;
-    private final LinkedList<Castle> castles;
-    private final LinkedList<Soldier> soldiers;
+    private final ArrayList<Castle> castles;
+    private final ArrayList<Soldier> soldiers;
     private final Map<Weapon, Integer> weapons;
 
     private int woodCount;
@@ -36,9 +39,9 @@ public class Player implements Serializable {
         this.foodCount = 0;
         this.wealth = 0;
         this.vision = new boolean[mapWidth][mapHeight];
-        this.castles = new LinkedList<>();
-        this.soldiers = new LinkedList<>();
-        this.weapons = new Map<>();
+        this.castles = new ArrayList<>();
+        this.soldiers = new ArrayList<>();
+        this.weapons = new HashMap<>();
     }
 
     public Tribe getTribe() {
@@ -137,11 +140,11 @@ public class Player implements Serializable {
         this.game = game;
     }
 
-    public LinkedList<Castle> getCastles() {
+    public ArrayList<Castle> getCastles() {
         return this.castles;
     }
 
-    public LinkedList<Soldier> getSoldiers() {
+    public ArrayList<Soldier> getSoldiers() {
         return this.soldiers;
     }
 
@@ -154,14 +157,14 @@ public class Player implements Serializable {
     }
 
     public void addWeapon(Weapon weapon, int count) {
-        if (this.weapons.exsits(weapon)) {
-            this.weapons.set(
+        if (this.weapons.containsKey(weapon)) {
+            this.weapons.put(
                     weapon,
                     this.weapons.get(weapon) + count
             );
             return;
         }
-        this.weapons.addFirst(weapon, count);
+        this.weapons.put(weapon, count);
     }
 
     public void removeWeapon(Weapon weapon) throws ItemDoesntExistException {
@@ -169,13 +172,13 @@ public class Player implements Serializable {
     }
 
     public void removeWeapon(Weapon weapon, int count) throws ItemDoesntExistException {
-        if (this.weapons.exsits(weapon)) {
+        if (this.weapons.containsKey(weapon)) {
             int newCount = Math.max(0, this.weapons.get(weapon) - count);
             if (newCount == 0) {
-                this.weapons.removeFromKey(weapon);
+                this.weapons.remove(weapon);
                 return;
             }
-            this.weapons.set(weapon, newCount);
+            this.weapons.put(weapon, newCount);
             return;
         }
         throw new ItemDoesntExistException();

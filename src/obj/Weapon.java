@@ -3,7 +3,9 @@ package obj;
 import db.Config;
 import util.MaterialCost;
 
-public enum Weapon {
+import java.io.Serializable;
+
+public enum Weapon implements Serializable {
     spear(10, 0, 1, null, Config.instance.weaponCosts.spear, Config.instance.weaponCosts.spearUnlock),
     sword(20, 0, 1, spear, Config.instance.weaponCosts.sword, Config.instance.weaponCosts.swordUnlock),
     heavySword(35, -1, 1, sword, Config.instance.weaponCosts.heavySword, Config.instance.weaponCosts.heavySwordUnlock),

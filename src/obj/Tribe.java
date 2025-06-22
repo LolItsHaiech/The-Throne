@@ -1,6 +1,8 @@
 package obj;
 
-public enum Tribe {
+import java.io.Serializable;
+
+public enum Tribe implements Serializable {
     human(20, 3, 3, 8),
     orc(22, 3, 2, 9),
     elf(17, 2, 4, 9),

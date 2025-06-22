@@ -5,7 +5,9 @@ import obj.Weapon;
 import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
-public abstract class Soldier {
+import java.io.Serializable;
+
+public abstract class Soldier implements Serializable {
     private Weapon weapon;
     private Position position;
     private final Player player;

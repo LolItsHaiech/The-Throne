@@ -10,7 +10,7 @@ import java.util.Iterator;
 // todo optimize
 // todo implement cache
 public class Database<T extends DBSerializable> implements Iterable<T> {
-    private File file;
+    private File file; // todo make usage synchronized
 
 
     public Database(String fileName) {
@@ -18,16 +18,26 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     }
 
     public boolean write(T obj) {
-        boolean append = file.exists();
-        try (FileOutputStream fos = new FileOutputStream(file, true);
-             ObjectOutputStream oos = append
-                     ? new AppendableObjectOutputStream(fos)
-                     : new ObjectOutputStream(fos)) {
+        File temp = new File(this.file + ".temp.db");
+        try {
+            FileOutputStream fos = new FileOutputStream(temp);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            for (T t : this) {
+                oos.writeObject(t);
+            }
             oos.writeObject(obj);
+            fos.close();
+            oos.close();
+
         } catch (IOException e) {
-            System.out.println(e.getMessage());
             return false;
         }
+
+        this.file.delete();
+        temp.renameTo(file);
+
+
         return true;
     }
 
@@ -88,23 +98,6 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
         }
     }
 
-    /**
-     * Custom OOS that omits the header when appending.
-     */
-    private static class AppendableObjectOutputStream extends ObjectOutputStream {
-        public AppendableObjectOutputStream(OutputStream out) throws IOException {
-            super(out);
-        }
-
-        @Override
-        protected void writeStreamHeader() throws IOException {
-            // Skip header
-        }
-    }
-
-    /**
-     * Iterator over the objects in the database file.
-     */
     private class DatabaseItr implements Iterator<T> {
         private final ObjectInputStream ois;
         private T nextObj;
@@ -130,6 +123,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             try {
                 @SuppressWarnings("unchecked")
                 T obj = (T) ois.readObject();
+                System.out.println("obj = " + obj);
                 nextObj = obj;
             } catch (EOFException eof) {
                 finished = true;

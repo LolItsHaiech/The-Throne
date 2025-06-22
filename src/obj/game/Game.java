@@ -234,6 +234,12 @@ public abstract class Game implements DBSerializable {
 
     @Override
     public void save() {
-        DB.update(this);
+        synchronized (DB) {
+            if(DB.check(this)) {
+                DB.update(this);
+            } else {
+                DB.write(this);
+            }
+        }
     }
 }
