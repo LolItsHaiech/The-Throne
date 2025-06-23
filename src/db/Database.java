@@ -1,6 +1,7 @@
 package db;
 
 
+import db.interfaces.CheckFunc;
 import db.interfaces.DBSerializable;
 
 import java.io.*;
@@ -10,7 +11,8 @@ import java.util.Iterator;
 // todo optimize
 // todo implement cache
 public class Database<T extends DBSerializable> implements Iterable<T> {
-    private File file; // todo make usage synchronized
+    private File file;
+    private final Object lock = new Object();
 
 
     public Database(String fileName) {
@@ -34,16 +36,28 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             return false;
         }
 
-        this.file.delete();
-        temp.renameTo(file);
+        synchronized (this.lock){
+            this.file.delete();
+            temp.renameTo(file);
+            this.file = temp;
+        }
 
 
         return true;
     }
 
-    public boolean check(T obj) {
+    public boolean exists(T obj) {
         for (T temp : this) {
             if (temp.getID() == obj.getID()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean check(CheckFunc<T> check) {
+        for (T t : this) {
+            if (check.check(t)) {
                 return true;
             }
         }
@@ -80,9 +94,11 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             return false;
         }
 
-        this.file.delete();
-        tempFile.renameTo(this.file);
-        this.file = tempFile;
+        synchronized (this.lock){
+            this.file.delete();
+            tempFile.renameTo(this.file);
+            this.file = tempFile;
+        }
 
 
         return saved;

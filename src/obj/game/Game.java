@@ -20,8 +20,6 @@ import java.util.Objects;
 import java.util.Random;
 
 
-// todo major bug when saving game in file
-// it's probably cuz the Database but idk
 
 public abstract class Game implements DBSerializable {
     private static final Database<Game> DB = new Database<>("GAMES");
@@ -235,7 +233,7 @@ public abstract class Game implements DBSerializable {
     @Override
     public void save() {
         synchronized (DB) {
-            if(DB.check(this)) {
+            if(DB.exists(this)) {
                 DB.update(this);
             } else {
                 DB.write(this);
