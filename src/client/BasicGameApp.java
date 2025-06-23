@@ -89,7 +89,7 @@ public class BasicGameApp extends GameApplication {
     protected void initSettings(GameSettings settings) {
         settings.setWidth(SCREEN_WIDTH);
         settings.setHeight(SCREEN_HEIGHT);
-        settings.setTitle("Isometric Map Renderer");
+        settings.setTitle("The Throne");
         settings.setVersion("0.1");
         settings.setFullScreenAllowed(true);
         settings.setFullScreenFromStart(false);
