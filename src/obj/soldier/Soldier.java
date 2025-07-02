@@ -5,7 +5,9 @@ import obj.Weapon;
 import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
-public abstract class Soldier {
+import java.io.Serializable;
+
+public abstract class Soldier implements Serializable {
     private Weapon weapon;
     private Position position;
     private final Player player;
@@ -16,7 +18,6 @@ public abstract class Soldier {
     private int defenceModifier;
 
     private Magic magic;
-    // todo decrement every turn;
     private int effectDurationLeft;
     private boolean hasMoved;
     private boolean hasAttacked;

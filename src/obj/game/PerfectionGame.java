@@ -25,6 +25,11 @@ public class PerfectionGame extends Game {
         return this.getTurnCount() >= this.turnCountLimit;
     }
 
+    @Override
+    public Player getWinner() {
+        return null; //todo
+    }
+
     public int getTurnCountLimit() {
         return turnCountLimit;
     }

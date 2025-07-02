@@ -2,7 +2,9 @@ package obj.soldier.wizard.functional;
 
 import obj.soldier.Soldier;
 
-public enum Magic {
+import java.io.Serializable;
+
+public enum Magic implements Serializable {
 
     healthBoost(0, 20, Soldier::setHealth, Soldier::getHealth),
     defenceBoost(2, 2, Soldier::setDefenceModifier, Soldier::getDefenceModifier),

@@ -7,12 +7,12 @@ import obj.soldier.wizard.functional.Magic;
 import util.MaterialCost;
 import util.Position;
 
-public class WizardsTower extends Building implements TrainerBuilding {
+public class WizardTower extends Building implements TrainerBuilding {
     private final Magic magic;
     private boolean operation;
     private int operationTime;
 
-    public WizardsTower(Position position, Magic magic) {
+    public WizardTower(Position position, Magic magic) {
         super(null, position);
         this.magic = magic;
         this.operation = false;

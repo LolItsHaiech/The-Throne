@@ -1,11 +1,12 @@
 package obj.auth;
 
-import db.DBSerializable;
+import db.interfaces.DBSerializable;
 import db.Database;
 import exceptions.AuthenticationException;
 import util.StringUtils;
 
-//todo
+import java.util.Objects;
+
 public class User implements DBSerializable {
     private final static Database<User> DB = new Database<>("USER");
 
@@ -26,10 +27,13 @@ public class User implements DBSerializable {
 
     public static User register(String displayName, String username, String password, String confirmPassword)
             throws AuthenticationException {
-        // todo check for unique username
+
         if (password.equals(confirmPassword)) {
             User user = new User(displayName, username, password);
             synchronized (DB) {
+                if(DB.check(obj -> Objects.equals(obj.username, username))) {
+                    throw new AuthenticationException("username already exists");
+                }
                 DB.write(user);
             }
             return user;
@@ -83,5 +87,17 @@ public class User implements DBSerializable {
     @Override
     public int getID() {
         return this.ID;
+    }
+
+    @Override
+    public void save() {
+        synchronized (DB) {
+            if(DB.exists(this)) {
+                DB.update(this);
+            } else {
+                DB.write(this);
+            }
+        }
+
     }
 }

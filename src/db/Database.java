@@ -1,6 +1,9 @@
 package db;
 
 
+import db.interfaces.CheckFunc;
+import db.interfaces.DBSerializable;
+
 import java.io.*;
 import java.util.Iterator;
 
@@ -9,6 +12,7 @@ import java.util.Iterator;
 // todo implement cache
 public class Database<T extends DBSerializable> implements Iterable<T> {
     private File file;
+    private final Object lock = new Object();
 
 
     public Database(String fileName) {
@@ -16,22 +20,44 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     }
 
     public boolean write(T obj) {
-        boolean append = file.exists();
-        try (FileOutputStream fos = new FileOutputStream(file, true);
-             ObjectOutputStream oos = append
-                     ? new AppendableObjectOutputStream(fos)
-                     : new ObjectOutputStream(fos)) {
+        File temp = new File(this.file + ".temp.db");
+        try {
+            FileOutputStream fos = new FileOutputStream(temp);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            for (T t : this) {
+                oos.writeObject(t);
+            }
             oos.writeObject(obj);
+            fos.close();
+            oos.close();
+
         } catch (IOException e) {
-            System.out.println(e.getMessage());
             return false;
         }
+
+        synchronized (this.lock){
+            this.file.delete();
+            temp.renameTo(file);
+            this.file = temp;
+        }
+
+
         return true;
     }
 
-    public boolean check(T obj) {
+    public boolean exists(T obj) {
         for (T temp : this) {
             if (temp.getID() == obj.getID()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean check(CheckFunc<T> check) {
+        for (T t : this) {
+            if (check.check(t)) {
                 return true;
             }
         }
@@ -68,9 +94,11 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             return false;
         }
 
-        this.file.delete();
-        tempFile.renameTo(this.file);
-        this.file = tempFile;
+        synchronized (this.lock){
+            this.file.delete();
+            tempFile.renameTo(this.file);
+            this.file = tempFile;
+        }
 
 
         return saved;
@@ -86,23 +114,6 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
         }
     }
 
-    /**
-     * Custom OOS that omits the header when appending.
-     */
-    private static class AppendableObjectOutputStream extends ObjectOutputStream {
-        public AppendableObjectOutputStream(OutputStream out) throws IOException {
-            super(out);
-        }
-
-        @Override
-        protected void writeStreamHeader() throws IOException {
-            // Skip header
-        }
-    }
-
-    /**
-     * Iterator over the objects in the database file.
-     */
     private class DatabaseItr implements Iterator<T> {
         private final ObjectInputStream ois;
         private T nextObj;
@@ -128,6 +139,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             try {
                 @SuppressWarnings("unchecked")
                 T obj = (T) ois.readObject();
+                System.out.println("obj = " + obj);
                 nextObj = obj;
             } catch (EOFException eof) {
                 finished = true;

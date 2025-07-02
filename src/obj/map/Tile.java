@@ -3,11 +3,13 @@ package obj.map;
 import obj.building.Building;
 import obj.soldier.Soldier;
 
-public class Tile {
+import java.io.Serializable;
+
+public class Tile implements Serializable {
     private Building building;
     private Soldier soldier;
-    private final Biome biome;
     private boolean tree;
+    private final Biome biome;
     private Height height;
 
     public Tile(Biome biome, Height height, boolean tree) {
@@ -54,7 +56,7 @@ public class Tile {
         return this.height;
     }
 
-    public enum Biome {
+    public enum Biome implements Serializable {
         desert(0, 0),
         badlands(0, 0),
         polarDesert(0, 0),
@@ -73,7 +75,7 @@ public class Tile {
         }
     }
 
-    public enum Height {
+    public enum Height implements Serializable {
         flat(0, 0),
         hill(1, -1),
         mountain(2, -2),

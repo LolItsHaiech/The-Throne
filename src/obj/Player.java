@@ -6,9 +6,12 @@ import obj.game.Game;
 import obj.soldier.Soldier;
 import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
+
 import util.map.Map;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable {
     private final User user;
     private Game game;
     private final Tribe tribe;
@@ -148,18 +151,12 @@ public class Player {
     }
 
     public void addWeapon(Weapon weapon) {
-        this.addWeapon(weapon,1);
+        this.addWeapon(weapon, 1);
     }
 
     public void addWeapon(Weapon weapon, int count) {
-        if (this.weapons.exsits(weapon)) {
-            this.weapons.set(
-                    weapon,
-                    this.weapons.get(weapon) + count
-            );
-            return;
-        }
-        this.weapons.addFirst(weapon, count);
+        int last = this.weapons.get(weapon); // if null -> 0
+        this.weapons.set(weapon, last + count);
     }
 
     public void removeWeapon(Weapon weapon) throws ItemDoesntExistException {
@@ -167,7 +164,7 @@ public class Player {
     }
 
     public void removeWeapon(Weapon weapon, int count) throws ItemDoesntExistException {
-        if (this.weapons.exsits(weapon)) {
+        if (this.weapons.containsKey(weapon)) {
             int newCount = Math.max(0, this.weapons.get(weapon) - count);
             if (newCount == 0) {
                 this.weapons.removeFromKey(weapon);
@@ -182,5 +179,5 @@ public class Player {
     public boolean[][] getVision() {
         return vision;
     }
-    
+
 }
