@@ -2,9 +2,10 @@ package util.map;
 
 import util.LinkedList;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Map<K, V> extends LinkedList<MapEntry<K, V>> {
+public class Map<K, V> extends LinkedList<MapEntry<K, V>> implements Serializable {
     public V get(K key) {
         for (MapEntry<K, V> entry : this) {
             if (Objects.equals(entry.getKey(), key)) {
@@ -15,10 +16,15 @@ public class Map<K, V> extends LinkedList<MapEntry<K, V>> {
     }
 
     public void set(K key, V value) {
+        boolean changed = false;
         for (MapEntry<K, V> entry : this) {
             if (Objects.equals(entry.getKey(), key)) {
                 entry.setValue(value);
+                changed = true;
             }
+        }
+        if (!changed) {
+            this.addFirst(new MapEntry<>(key, value));
         }
     }
 
@@ -39,7 +45,7 @@ public class Map<K, V> extends LinkedList<MapEntry<K, V>> {
         super.addLast(new MapEntry<>(key, value));
     }
 
-    public boolean exsits(K key) {
+    public boolean containsKey(K key) {
         for (MapEntry<K, V> entry : this) {
             if (Objects.equals(entry.getKey(), key)) {
                 return true;

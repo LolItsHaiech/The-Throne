@@ -77,6 +77,7 @@ public class BasicGameApp extends GameApplication {
 
     private Star[] stars;
     private LinkedList<RenderSoldier> renderedSoldiers;
+    private LinkedList<RenderTile> renderedCloud;
 
     private boolean isSoldierMoving;
     private boolean isYourTurn;
@@ -102,7 +103,9 @@ public class BasicGameApp extends GameApplication {
         players[1] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
         players[2] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
         players[3] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-
+        for (Player player1 : players) {
+            player1.setGame(this.game);
+        }
         this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT);
         for (Player player : players) {
             player.setGame(this.game);
@@ -116,6 +119,7 @@ public class BasicGameApp extends GameApplication {
         this.isYourTurn = this.game.GetActivePlayer().equals(this.player);
         this.isSoldierMoving = false;
         this.renderedSoldiers = new LinkedList<>();
+        this.renderedCloud = new LinkedList<>();
 
         getGameScene().setBackgroundColor(
                 new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
@@ -166,6 +170,13 @@ public class BasicGameApp extends GameApplication {
                 if (map[x][y].hasTree()) {
                     entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
                 }
+//                if (!this.player.getVision()[x][y]) {
+//                    this.renderedCloud.addFirst(new RenderTile(
+//                            this.map[x][y],
+//                            new Position(x, y),
+//                            entityBuilder(coords.x(), coords.y(), 6, "tiles/cloud_tile.png")
+//                    ));
+//                } todo
                 renderBuilding(tile, x, y);
                 renderSoldier(tile, x, y);
             }
@@ -437,14 +448,14 @@ public class BasicGameApp extends GameApplication {
         if (tile.getSoldier() != null && !tile.getSoldier().hasMoved()) {
             Button moveSoldier = new Button("Move Soldier");
             moveSoldier.setMinWidth(200);
-            moveSoldier.setOnAction(e -> this.isSoldierMoving = true); // todo
+            moveSoldier.setOnAction(e -> this.isSoldierMoving = true);
 
             this.tileMenu.getChildren().add(moveSoldier);
         }
     }
 
     private static int getZIndex(int x, int y, int level) {
-        return 6 * (x+y) + level;
+        return 6 * (x + y) + level;
     }
 
     private static Entity entityBuilder(int x, int y, int level, String spriteFile) {
@@ -456,10 +467,9 @@ public class BasicGameApp extends GameApplication {
         return FXGL.entityBuilder()
                 .at(x, y)
                 .view(texture)
-                .zIndex(getZIndex(pos.x(), pos.y(),level))
+                .zIndex(getZIndex(pos.x(), pos.y(), level))
                 .buildAndAttach();
     }
-
 
 
     private static void stringBuilderUI(int x, int y, String property, String value) {
@@ -490,9 +500,6 @@ public class BasicGameApp extends GameApplication {
         stringBuilderUI(100, y, property, value);
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 
     private static class Star {
         private double x;
@@ -514,5 +521,9 @@ public class BasicGameApp extends GameApplication {
             this.radius = radius;
             this.opacity = opacity;
         }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
