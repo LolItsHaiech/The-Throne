@@ -11,34 +11,21 @@ import util.Position;
 public class Castle extends Building implements CollectorBuilding, TrainerBuilding {
     private boolean operation;
     private int operationTime;
-    private int level;
 
     public Castle(Player owner, Position position) {
         super(owner, position);
-        this.level = 1;
         this.operation = false;
         this.operationTime = 0;
     }
 
-    public int getLevel() {
-        return this.level;
-    }
-
     public int getBorderRadius() {
-        return this.level + 1;
+        return 3;
     }
 
-    public int getBorderLength() {
-        return 2 * this.level + 1;
-    }
-
-    public void incrementLevel(int level) {
-        this.level++;
-    }
 
     @Override
     public void collect() {
-        owner.increaseWealth(10 * this.level);
+        owner.increaseWealth(10);
     }
 
     @Override
@@ -67,9 +54,15 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
     public void capture(Player player) {
         this.owner.getCastles().remove(this); // todo
         player.getCastles().addFirst(this);
-        int length = this.getBorderLength();
-        for (int x = 0; x < length; x++) {
-            for (int y = 0; y < length; y++) {
+        int r = this.getBorderRadius();
+
+        int minX = Math.max(this.position.x()-r, 0 );
+        int maxX = Math.min(this.position.x()+r, player.getGame().getMap().length);
+        int minY = Math.max(this.position.y()-r, 0);
+        int maxY = Math.min(this.position.y()-r, player.getGame().getMap()[0].length);
+
+        for (int x = minX; x < maxX; x++) {
+            for (int y = minY; y < maxY; y++) {
                 Tile tile = player.getGame().getMap()[x][y];
                 if (tile.getBuilding() != null) {
                     tile.getBuilding().setOwner(player);

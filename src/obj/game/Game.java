@@ -12,6 +12,7 @@ import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
 import obj.soldier.Soldier;
 import obj.soldier.wizard.functional.Magic;
+import util.LinkedList;
 import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
@@ -224,6 +225,7 @@ public abstract class Game implements DBSerializable {
         }
         return null;
     }
+
 
     @Override
     public int getID() {

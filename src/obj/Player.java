@@ -7,9 +7,12 @@ import obj.soldier.Soldier;
 import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
 
+import util.Position;
 import util.map.Map;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import util.Set;
 
 public class Player implements Serializable {
     private final User user;
@@ -174,6 +177,23 @@ public class Player implements Serializable {
             return;
         }
         throw new ItemDoesntExistException();
+    }
+
+    public Set<Position> getTerritory(){
+        Set<Position> res = new Set<>();
+        for (Castle castle : this.castles) {
+            int r = castle.getBorderRadius();
+            int minX = Math.max(castle.getPosition().x()-r, 0 );
+            int maxX = Math.min(castle.getPosition().x()+r, this.getGame().getMap().length);
+            int minY = Math.max(castle.getPosition().y()-r, 0);
+            int maxY = Math.min(castle.getPosition().y()-r, this.getGame().getMap()[0].length);
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    res.addFirst(new Position(x, y));
+                }
+            }
+        }
+        return res;
     }
 
     public boolean[][] getVision() {

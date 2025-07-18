@@ -2,6 +2,7 @@ package obj.building;
 
 import obj.Player;
 import obj.building.interfaces.functional.BuildingFactory;
+import obj.game.Game;
 import obj.map.Tile;
 import util.LinkedList;
 import util.MaterialCost;
@@ -18,6 +19,10 @@ public abstract class Building implements Serializable {
         this.position = position;
     }
 
+    public Position getPosition() {
+        return this.position;
+    }
+
     public void setOwner(Player owner) {
         this.owner = owner;
     }
@@ -28,7 +33,11 @@ public abstract class Building implements Serializable {
 
     public abstract MaterialCost getBuildingPrice();
 
-    public static LinkedList<BuildingFactory> getAllowedBuildingsToBuild(Tile tile) {
+    public static LinkedList<BuildingFactory> getAllowedBuildingsToBuild(Player player, Position position) {
+        if (!player.getTerritory().exists(position)) {
+            return new LinkedList<>();
+        }
+        Tile tile = player.getGame().getTile(position);
         LinkedList<BuildingFactory> allowedBuildings = new LinkedList<>();
         if (tile.getBuilding()!=null) {
             return allowedBuildings;

@@ -10,7 +10,6 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.scene.CSS;
 import com.almasb.fxgl.texture.Texture;
-import com.google.gson.Gson;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -37,14 +36,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.geometry.Pos;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
 
-public class BasicGameApp extends GameApplication {
+public class GameApp extends GameApplication {
 
     private static final int TILE_WIDTH = 40;
     private static final int TILE_HEIGHT = 20;
@@ -429,7 +426,7 @@ public class BasicGameApp extends GameApplication {
             buildingInfo.setOnAction(e -> System.out.println("Building: " + tile.getBuilding().getClass().getSimpleName()));
             this.tileMenu.getChildren().add(buildingInfo);
         } else {
-            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(tile)) {
+            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.position())) {
                 // <-- here
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
                 btn.setMinWidth(200);
