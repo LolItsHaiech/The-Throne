@@ -4,6 +4,7 @@ import db.interfaces.DBSerializable;
 import db.Database;
 import obj.Player;
 import obj.Weapon;
+import obj.auth.User;
 import obj.building.Building;
 import obj.building.Castle;
 import obj.building.WizardTower;
@@ -26,6 +27,8 @@ public abstract class Game implements DBSerializable {
     private static final Database<Game> DB = new Database<>("GAMES");
 
     private final int ID;
+    private final String name;
+    protected final User[] users;
     protected final Player[] players;
     protected final Tile[][] map;
     private int turn;
@@ -33,15 +36,17 @@ public abstract class Game implements DBSerializable {
     private final long SEED;
     private static final double NOISE_FREQUENCY = 0.1;
 
-    public Game(Player[] players, int mapWidth, int mapHeight) {
-        this(players, mapWidth, mapHeight, new Random(System.nanoTime()).nextLong());
+    public Game(String name, User[] users, int mapWidth, int mapHeight) {
+        this(name, users, mapWidth, mapHeight, new Random(System.nanoTime()).nextLong());
     }
 
-    public Game(Player[] players, int mapWidth, int mapHeight, long seed) {
+    public Game(String name, User[] users, int mapWidth, int mapHeight, long seed) {
         synchronized (DB) {
             this.ID = DB.getNextID();
         }
-        this.players = players;
+        this.name = name;
+        this.users = users;
+        this.players = new Player[users.length];
         this.SEED = seed;
         this.turn = 0;
         this.map = this.generateMap(mapWidth, mapHeight);
@@ -226,6 +231,15 @@ public abstract class Game implements DBSerializable {
         return null;
     }
 
+    public boolean isGameStarted() {
+        for (Player player : this.players) {
+            if(player==null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     @Override
     public int getID() {
@@ -241,5 +255,33 @@ public abstract class Game implements DBSerializable {
                 DB.write(this);
             }
         }
+    }
+
+    public static LinkedList<Game> getAllGames(User user) {
+        LinkedList<Game> games = new LinkedList<>();
+        synchronized (DB) {
+            for (Game game : DB) {
+                for (User u : game.users) {
+                    if (u.equals(user)) {
+                        games.addFirst(game);
+                        break;
+                    }
+                }
+            }
+        }
+        return games;
+    }
+
+    public void createPlayer(User user, Player player) {
+        for (int i = 0; i < this.users.length; i++) {
+            if(this.users[i].equals(user)) {
+                this.players[i] = player;
+            }
+        }
+        this.save();
+    }
+
+    public String getName() {
+        return name;
     }
 }

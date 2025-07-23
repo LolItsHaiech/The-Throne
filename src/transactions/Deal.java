@@ -175,7 +175,7 @@ public class Deal {
                     case food -> sender.spendFood(item.getCount());
                     case stone -> sender.spendStone(item.getCount());
                     case iron -> sender.spendIron(item.getCount());
-                    case wood -> sender.spendWood(item.getCount());
+                    case wood -> sender.spendWood(item.getCount()); //todo check if player has enough
                 }
             } else if (transaction instanceof WeaponDealItem weapon) {
                 try {

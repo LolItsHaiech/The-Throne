@@ -11,7 +11,6 @@ import util.Position;
 import util.map.Map;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import util.Set;
 
 public class Player implements Serializable {

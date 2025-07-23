@@ -1,6 +1,7 @@
 package obj.game;
 
 import obj.Player;
+import obj.auth.User;
 import obj.building.Castle;
 import obj.map.Tile;
 
@@ -15,13 +16,13 @@ import java.util.Map;
 public class CollectionGame extends Game {
     private final int turnCountLimit;
 
-    public CollectionGame(Player[] players, int mapWidth, int mapHeight, int turnCountLimit) {
-        super(players, mapWidth, mapHeight);
+    public CollectionGame(String name, User[] users, int mapWidth, int mapHeight, int turnCountLimit) {
+        super(name, users, mapWidth, mapHeight);
         this.turnCountLimit = turnCountLimit;
     }
 
-    public CollectionGame(Player[] players, int mapWidth, int mapHeight, long seed, int turnCountLimit) {
-        super(players, mapWidth, mapHeight, seed);
+    public CollectionGame(String name, User[] users, int mapWidth, int mapHeight, long seed, int turnCountLimit) {
+        super(name, users, mapWidth, mapHeight, seed);
         this.turnCountLimit = turnCountLimit;
     }
 

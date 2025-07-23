@@ -74,7 +74,6 @@ public class GameApp extends GameApplication {
 
     private Star[] stars;
     private LinkedList<RenderSoldier> renderedSoldiers;
-    private LinkedList<RenderTile> renderedCloud;
 
     private boolean isSoldierMoving;
     private boolean isYourTurn;
@@ -103,7 +102,7 @@ public class GameApp extends GameApplication {
         for (Player player1 : players) {
             player1.setGame(this.game);
         }
-        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT);
+//        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT); todo
         for (Player player : players) {
             player.setGame(this.game);
         }
@@ -116,7 +115,6 @@ public class GameApp extends GameApplication {
         this.isYourTurn = this.game.GetActivePlayer().equals(this.player);
         this.isSoldierMoving = false;
         this.renderedSoldiers = new LinkedList<>();
-        this.renderedCloud = new LinkedList<>();
 
         getGameScene().setBackgroundColor(
                 new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,

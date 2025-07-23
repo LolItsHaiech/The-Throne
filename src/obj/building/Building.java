@@ -2,7 +2,6 @@ package obj.building;
 
 import obj.Player;
 import obj.building.interfaces.functional.BuildingFactory;
-import obj.game.Game;
 import obj.map.Tile;
 import util.LinkedList;
 import util.MaterialCost;
