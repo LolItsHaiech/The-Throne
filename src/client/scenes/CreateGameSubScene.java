@@ -16,6 +16,9 @@ import obj.game.DominationGame;
 import obj.game.Game;
 import obj.game.PerfectionGame;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CreateGameSubScene extends SubScene {
     private final User user;
     private VBox root;
@@ -23,7 +26,11 @@ public class CreateGameSubScene extends SubScene {
     // Form fields
     private TextField gameNameField;
     private ComboBox<String> gameTypeCombo;
-    private Spinner<Integer> playerCountSpinner;
+    private TextField userSearchField;
+    private ListView<User> suggestionsListView;
+    private ListView<User> selectedUsersListView;
+    private List<User> selectedUsers;
+    private Label selectedUsersCountLabel;
     private Spinner<Integer> mapWidthSpinner;
     private Spinner<Integer> mapHeightSpinner;
     private Spinner<Integer> turnLimitSpinner;
@@ -32,6 +39,8 @@ public class CreateGameSubScene extends SubScene {
 
     public CreateGameSubScene(User user) {
         this.user = user;
+        this.selectedUsers = new ArrayList<>();
+        this.selectedUsers.add(user); // Creator is always included
         initializeUI();
     }
 
@@ -71,8 +80,8 @@ public class CreateGameSubScene extends SubScene {
         // Game Type Section
         VBox gameTypeSection = createFormSection("Game Type", createGameTypeCombo());
 
-        // Player Count Section
-        VBox playerCountSection = createFormSection("Number of Players", createPlayerCountSpinner());
+        // Player Selection Section
+        VBox playerSelectionSection = createPlayerSelectionSection();
 
         // Map Size Section
         HBox mapSizeContainer = new HBox(15);
@@ -104,7 +113,7 @@ public class CreateGameSubScene extends SubScene {
         formContainer.getChildren().addAll(
                 gameNameSection,
                 gameTypeSection,
-                playerCountSection,
+                playerSelectionSection,
                 mapSizeSection,
                 turnLimitSection,
                 messageLabel,
@@ -132,6 +141,153 @@ public class CreateGameSubScene extends SubScene {
         return section;
     }
 
+    private VBox createPlayerSelectionSection() {
+        VBox section = new VBox(8);
+        section.setAlignment(Pos.CENTER_LEFT);
+
+        Label label = new Label("Select Players");
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        label.setTextFill(Color.GOLD);
+
+        // Search field for users
+        userSearchField = new TextField();
+        userSearchField.setPromptText("Search for users to add...");
+        userSearchField.setPrefHeight(40);
+        userSearchField.setStyle("-fx-font-size: 14; -fx-pref-width: 300;");
+
+        // Add text change listener for live search
+        userSearchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateUserSuggestions(newValue);
+        });
+
+        // Suggestions list view
+        suggestionsListView = new ListView<>();
+        suggestionsListView.setPrefHeight(100);
+        suggestionsListView.setPrefWidth(300);
+        suggestionsListView.setStyle("-fx-font-size: 12;");
+        suggestionsListView.setVisible(false);
+        suggestionsListView.setManaged(false);
+
+        suggestionsListView.setCellFactory(listView -> new ListCell<User>() {
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setText(null);
+                } else {
+                    setText(user.toString());
+                }
+            }
+        });
+
+
+
+        suggestionsListView.setOnMouseClicked(e -> {
+            User selectedUser = suggestionsListView.getSelectionModel().getSelectedItem();
+            if (selectedUser != null && e.getClickCount() == 2) {
+                addUserToGame(selectedUser);
+            }
+        });
+
+        // Selected users list
+        selectedUsersListView = new ListView<>();
+        selectedUsersListView.setPrefHeight(120);
+        selectedUsersListView.setPrefWidth(300);
+        selectedUsersListView.setStyle("-fx-font-size: 12;");
+
+        // Custom cell factory to show user info and remove button
+        selectedUsersListView.setCellFactory(listView -> new ListCell<User>() {
+            private Button removeButton = new Button("×");
+            private HBox hbox = new HBox();
+            private Label userLabel = new Label();
+
+            {
+                removeButton.setStyle("-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold;");
+                removeButton.setPrefSize(20, 20);
+                removeButton.setOnAction(e -> {
+                    User userToRemove = getItem();
+                    if (userToRemove != null && !userToRemove.equals(user)) { // Can't remove creator
+                        selectedUsers.remove(userToRemove);
+                        updateSelectedUsersList();
+                    }
+                });
+
+                hbox.setSpacing(10);
+                hbox.setAlignment(Pos.CENTER_LEFT);
+                hbox.getChildren().addAll(userLabel, removeButton);
+            }
+
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setGraphic(null);
+                } else {
+                    userLabel.setText(user.toString());
+                    // Don't show remove button for the creator
+                    removeButton.setVisible(!user.equals(CreateGameSubScene.this.user));
+                    setGraphic(hbox);
+                }
+            }
+        });
+
+        // Update initial selected users list
+        updateSelectedUsersList();
+
+        selectedUsersCountLabel = new Label("Selected Players (" + selectedUsers.size() + "/8):");
+        selectedUsersCountLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
+        selectedUsersCountLabel.setTextFill(Color.LIGHTGRAY);
+
+        section.getChildren().addAll(label, userSearchField, suggestionsListView, selectedUsersCountLabel, selectedUsersListView);
+        return section;
+    }
+
+    private void updateUserSuggestions(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            suggestionsListView.setVisible(false);
+            suggestionsListView.setManaged(false);
+            return;
+        }
+
+        User[] searchResults = User.search(query.trim());
+        suggestionsListView.getItems().clear();
+
+        for (User searchUser : searchResults) {
+            if (searchUser != null && !selectedUsers.contains(searchUser)) {
+                suggestionsListView.getItems().add(searchUser);
+            }
+        }
+
+        boolean hasResults = suggestionsListView.getItems().size() > 0;
+        suggestionsListView.setVisible(hasResults);
+        suggestionsListView.setManaged(hasResults);
+    }
+
+    private void addUserToGame(User userToAdd) {
+        if (selectedUsers.size() >= 8) {
+            showMessage("Maximum 8 players allowed", Color.ORANGE);
+            return;
+        }
+
+        if (!selectedUsers.contains(userToAdd)) {
+            selectedUsers.add(userToAdd);
+            updateSelectedUsersList();
+            userSearchField.clear();
+            suggestionsListView.setVisible(false);
+            suggestionsListView.setManaged(false);
+        }
+    }
+
+    private void updateSelectedUsersList() {
+        selectedUsersListView.getItems().clear();
+        selectedUsersListView.getItems().addAll(selectedUsers);
+
+        // Update the label
+        if (selectedUsersCountLabel != null) {
+            selectedUsersCountLabel.setText("Selected Players (" + selectedUsers.size() + "/8):");
+        }
+    }
+
     private TextField createGameNameField() {
         gameNameField = new TextField();
         gameNameField.setPromptText("Enter game name...");
@@ -152,15 +308,6 @@ public class CreateGameSubScene extends SubScene {
         gameTypeCombo.setOnAction(e -> updateTurnLimitVisibility());
 
         return gameTypeCombo;
-    }
-
-    private Spinner<Integer> createPlayerCountSpinner() {
-        playerCountSpinner = new Spinner<>(2, 8, 2);
-        playerCountSpinner.setPrefHeight(40);
-        playerCountSpinner.setPrefWidth(300);
-        playerCountSpinner.setStyle("-fx-font-size: 14;");
-        playerCountSpinner.setEditable(true);
-        return playerCountSpinner;
     }
 
     private Spinner<Integer> createMapWidthSpinner() {
@@ -232,8 +379,13 @@ public class CreateGameSubScene extends SubScene {
             return;
         }
 
+        if (selectedUsers.size() < 2) {
+            showMessage("At least 2 players are required", Color.RED);
+            return;
+        }
+
         String gameType = gameTypeCombo.getValue();
-        int playerCount = playerCountSpinner.getValue();
+        int playerCount = selectedUsers.size();
         int mapWidth = mapWidthSpinner.getValue();
         int mapHeight = mapHeightSpinner.getValue();
 
@@ -250,13 +402,8 @@ public class CreateGameSubScene extends SubScene {
         }
 
         try {
-            // Create users array (for now, just the creator)
-            User[] users = new User[playerCount];
-            users[0] = user; // Creator is always the first player
-            // Other slots will be filled when players join
-            for (int i = 1; i < playerCount; i++) {
-                users[i] = null; // Will be filled when players join
-            }
+            // Create users array from selected users
+            User[] users = selectedUsers.toArray(new User[0]);
 
             // Create the appropriate game type
             Game game;

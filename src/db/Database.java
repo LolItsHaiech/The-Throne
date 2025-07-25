@@ -139,7 +139,6 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             try {
                 @SuppressWarnings("unchecked")
                 T obj = (T) ois.readObject();
-                System.out.println("obj = " + obj);
                 nextObj = obj;
             } catch (EOFException eof) {
                 finished = true;

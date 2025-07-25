@@ -2,6 +2,7 @@ package util;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 public class LinkedList<T> implements Iterable<T>, Serializable {
     protected Node head;
@@ -102,6 +103,23 @@ public class LinkedList<T> implements Iterable<T>, Serializable {
 
     public boolean isEmpty() {
         return this.head == null;
+    }
+
+    public void removeIf(Predicate<? super T> filter) {
+        while(this.head==null) {
+            if (filter.test(this.head.data)) {
+                this.head = this.head.next;
+            } else {
+                break;
+            }
+        }
+        Node temp = this.head;
+        while (temp.next != null) {
+            if (filter.test(temp.next.data)) {
+                temp.next = temp.next.next;
+            }
+            temp = temp.next;
+        }
     }
 
     private class Node implements Serializable {

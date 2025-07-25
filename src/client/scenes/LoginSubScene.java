@@ -160,7 +160,7 @@ public class LoginSubScene extends SubScene {
             }
             ((TheThrone) FXGL.getApp()).showGamesMenu(user);
         } catch (AuthenticationException e) {
-            showMessage("Wrong credentials", Color.RED);
+            showMessage(isRegisterMode?"Username already exists":"Wrong credentials", Color.RED);
         }
     }
 
