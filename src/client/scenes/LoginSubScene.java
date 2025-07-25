@@ -1,14 +1,17 @@
 package client.scenes;
 
+import client.TheThrone;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.scene.SubScene;
 import exceptions.AuthenticationException;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
 import obj.auth.User;
 
 public class LoginSubScene extends SubScene {
@@ -100,6 +103,7 @@ public class LoginSubScene extends SubScene {
         root.getChildren().addAll(titleLabel, formContainer);
 
         getContentRoot().getChildren().add(root);
+        System.out.println("errer");
     }
 
     private void toggleMode(Label formTitle, Button actionButton, Button toggleButton) {
@@ -148,18 +152,13 @@ public class LoginSubScene extends SubScene {
         try {
             User user;
             if (isRegisterMode) {
-                user = User.register(displayName, username, password, confirmPassword); // todo
+                user = User.register(displayName, username, password, confirmPassword);
                 showMessage("Registration successful! Welcome " + username, Color.GREEN);
             } else {
                 user = User.login(username, password);
                 showMessage("Login successful! Welcome back " + username, Color.GREEN);
             }
-
-            FXGL.runOnce(() -> {
-                FXGL.getSceneService().popSubScene();
-//                    ((TheThrone) FXGL.getApp()).showMainMenu(user); todo
-            }, javafx.util.Duration.seconds(1));
-
+            ((TheThrone) FXGL.getApp()).showGamesMenu(user);
         } catch (AuthenticationException e) {
             showMessage("Wrong credentials", Color.RED);
         }

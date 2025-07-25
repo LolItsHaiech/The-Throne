@@ -100,6 +100,10 @@ public class LinkedList<T> implements Iterable<T>, Serializable {
         } catch (NullPointerException ignored) {}
     }
 
+    public boolean isEmpty() {
+        return this.head == null;
+    }
+
     private class Node implements Serializable {
         public T data;
         public Node next;
