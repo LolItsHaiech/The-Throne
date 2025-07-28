@@ -18,7 +18,7 @@ import obj.game.PerfectionGame;
 
 import java.util.ArrayList;
 import java.util.List;
-
+// todo make it so that the players are unique
 public class CreateGameSubScene extends SubScene {
     private final User user;
     private VBox root;
@@ -120,13 +120,35 @@ public class CreateGameSubScene extends SubScene {
                 createButton
         );
 
-        // Header with back button
+        // Wrapper for centering the form in the ScrollPane
+        VBox scrollContent = new VBox();
+        scrollContent.setAlignment(Pos.TOP_CENTER);
+        scrollContent.setPadding(new Insets(20));
+        scrollContent.getChildren().add(formContainer);
+
+        // Create ScrollPane for the form
+        ScrollPane scrollPane = new ScrollPane(scrollContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setPrefSize(1280, 600); // Leave space for header
+        scrollPane.setStyle("-fx-background-color: transparent; " +
+                                    "-fx-background: transparent;");
+
+        // Header with back button (outside scroll area)
         HBox headerBox = new HBox();
         headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.getChildren().add(backButton);
 
-        root.getChildren().addAll(headerBox, titleLabel, formContainer);
-        getContentRoot().getChildren().add(root);
+        // Main layout with header, title, and scrollable form
+        VBox mainLayout = new VBox(20);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.setPrefSize(1280, 720);
+        mainLayout.setPadding(new Insets(30));
+        mainLayout.getChildren().addAll(headerBox, titleLabel, scrollPane);
+
+        getContentRoot().getChildren().add(mainLayout);
     }
 
     private VBox createFormSection(String labelText, Region field) {
@@ -179,8 +201,6 @@ public class CreateGameSubScene extends SubScene {
                 }
             }
         });
-
-
 
         suggestionsListView.setOnMouseClicked(e -> {
             User selectedUser = suggestionsListView.getSelectionModel().getSelectedItem();
@@ -269,13 +289,16 @@ public class CreateGameSubScene extends SubScene {
             return;
         }
 
-        if (!selectedUsers.contains(userToAdd)) {
-            selectedUsers.add(userToAdd);
-            updateSelectedUsersList();
-            userSearchField.clear();
-            suggestionsListView.setVisible(false);
-            suggestionsListView.setManaged(false);
+        if (selectedUsers.contains(userToAdd)) {
+            showMessage("User already selected", Color.ORANGE);
+            return;
         }
+
+        selectedUsers.add(userToAdd);
+        updateSelectedUsersList();
+        userSearchField.clear();
+        suggestionsListView.setVisible(false);
+        suggestionsListView.setManaged(false);
     }
 
     private void updateSelectedUsersList() {

@@ -57,9 +57,9 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
         int r = this.getBorderRadius();
 
         int minX = Math.max(this.position.x()-r, 0 );
-        int maxX = Math.min(this.position.x()+r, player.getGame().getMap().length);
+        int maxX = Math.min(this.position.x()+r, player.getGame().getMapWidth());
         int minY = Math.max(this.position.y()-r, 0);
-        int maxY = Math.min(this.position.y()-r, player.getGame().getMap()[0].length);
+        int maxY = Math.min(this.position.y()-r, player.getGame().getMapHeight());
 
         for (int x = minX; x < maxX; x++) {
             for (int y = minY; y < maxY; y++) {

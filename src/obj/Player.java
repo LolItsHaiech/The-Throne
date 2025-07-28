@@ -183,9 +183,9 @@ public class Player implements Serializable {
         for (Castle castle : this.castles) {
             int r = castle.getBorderRadius();
             int minX = Math.max(castle.getPosition().x()-r, 0 );
-            int maxX = Math.min(castle.getPosition().x()+r, this.getGame().getMap().length);
+            int maxX = Math.min(castle.getPosition().x()+r, this.getGame().getMapWidth());
             int minY = Math.max(castle.getPosition().y()-r, 0);
-            int maxY = Math.min(castle.getPosition().y()-r, this.getGame().getMap()[0].length);
+            int maxY = Math.min(castle.getPosition().y()-r, this.getGame().getMapHeight());
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     res.addFirst(new Position(x, y));

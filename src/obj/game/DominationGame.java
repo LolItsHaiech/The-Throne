@@ -22,6 +22,9 @@ public class DominationGame extends Game{
 
     @Override
     public boolean isEnded() {
+        if (this.map == null) {
+            return false;
+        }
         Player p = null;
         for (Tile[] tiles : this.map) {
             for (Tile tile : tiles) {

@@ -96,7 +96,7 @@ public class GamesMenuSubScene extends SubScene {
         Label statusHeader = new Label("STATUS");
         statusHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         statusHeader.setTextFill(Color.GOLD);
-        statusHeader.setPrefWidth(100);
+        statusHeader.setPrefWidth(200);
 
         Label playersHeader = new Label("PLAYERS");
         playersHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -117,13 +117,8 @@ public class GamesMenuSubScene extends SubScene {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label actionHeader = new Label("ACTION");
-        actionHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        actionHeader.setTextFill(Color.GOLD);
-        actionHeader.setPrefWidth(100);
-
         headerBox.getChildren().addAll(gameNameHeader, statusHeader, playersHeader,
-                                       turnHeader, mapSizeHeader, spacer, actionHeader);
+                                       turnHeader, mapSizeHeader, spacer);
         return headerBox;
     }
 
@@ -164,7 +159,7 @@ public class GamesMenuSubScene extends SubScene {
         String status = game.isGameStarted() ? (game.isEnded() ? "FINISHED" : "IN PROGRESS") : "WAITING FOR PLAYERS";
         Label statusLabel = new Label(status);
         statusLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
-        statusLabel.setPrefWidth(100);
+        statusLabel.setPrefWidth(200);
 
         // Set status color
         switch (status) {
@@ -202,7 +197,7 @@ public class GamesMenuSubScene extends SubScene {
         turnLabel.setPrefWidth(80);
 
         // Map size
-        String mapSize = game.getMap().length + "x" + game.getMap()[0].length;
+        String mapSize = game.getMapWidth() + "x" + game.getMapHeight();
         Label mapSizeLabel = new Label(mapSize);
         mapSizeLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
         mapSizeLabel.setTextFill(Color.LIGHTGRAY);
@@ -216,6 +211,8 @@ public class GamesMenuSubScene extends SubScene {
         Button actionButton = new Button();
         actionButton.setPrefHeight(35);
         actionButton.setPrefWidth(100);
+        actionButton.setVisible(!game.isEnded());
+        actionButton.setManaged(!game.isEnded());
 
         if (!game.isGameStarted()) {
             actionButton.setText("JOIN");
@@ -225,14 +222,6 @@ public class GamesMenuSubScene extends SubScene {
                                           "-fx-font-weight: bold; " +
                                           "-fx-background-radius: 3;");
             actionButton.setOnAction(e -> handleJoinGame(game));
-        } else if (game.isEnded()) {
-            actionButton.setText("VIEW");
-            actionButton.setStyle("-fx-background-color: #9E9E9E; " +
-                                          "-fx-text-fill: white; " +
-                                          "-fx-font-size: 12; " +
-                                          "-fx-font-weight: bold; " +
-                                          "-fx-background-radius: 3;");
-            actionButton.setOnAction(e -> handleViewGame(game));
         } else {
             actionButton.setText("PLAY");
             actionButton.setStyle("-fx-background-color: #4CAF50; " +
@@ -281,12 +270,6 @@ public class GamesMenuSubScene extends SubScene {
         // This would transition to the actual game scene
         // FXGL.getSceneService().popSubScene(); // Remove this menu
         // ((TheThrone) FXGL.getApp()).startGame(game, user);
-    }
-
-    private void handleViewGame(Game game) {
-        // TODO: Implement view finished game functionality
-        System.out.println("View game: " + game.getName());
-        // This could show game results or replay
     }
 
     public void refreshGames() {

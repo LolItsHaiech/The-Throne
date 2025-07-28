@@ -18,9 +18,9 @@ import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
-
 
 
 public abstract class Game implements DBSerializable {
@@ -30,7 +30,9 @@ public abstract class Game implements DBSerializable {
     private final String name;
     protected final User[] users;
     protected final Player[] players;
-    protected final Tile[][] map;
+    protected Tile[][] map;
+    private final int mapWidth;
+    private final int mapHeight;
     private int turn;
     private int turnCount;
     private final long SEED;
@@ -49,7 +51,9 @@ public abstract class Game implements DBSerializable {
         this.players = new Player[users.length];
         this.SEED = seed;
         this.turn = 0;
-        this.map = this.generateMap(mapWidth, mapHeight);
+        this.map = null;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
         this.turnCount = 0;
     }
 
@@ -67,10 +71,11 @@ public abstract class Game implements DBSerializable {
     }
 
     public abstract boolean isEnded();
+
     public abstract Player getWinner();
 
-    private Tile[][] generateMap(int mapWidth, int mapHeight) {
-        Tile[][] map = new Tile[mapWidth][mapHeight];
+    public Tile[][] generateMap() {
+        this.map = new Tile[this.mapWidth][this.mapHeight];
         Random rand = new Random(this.SEED);
 
         // terrain gen
@@ -217,7 +222,7 @@ public abstract class Game implements DBSerializable {
     }
 
     public boolean isInBounds(Position pos) {
-        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < this.map.length && pos.y() < this.map[0].length;
+        return pos.x() >= 0 && pos.y() >= 0 && pos.x() < this.getMapWidth() && pos.y() < this.getMapHeight();
     }
 
     public Soldier getSoldierAt(Position pos) {
@@ -233,7 +238,7 @@ public abstract class Game implements DBSerializable {
 
     public boolean isGameStarted() {
         for (Player player : this.players) {
-            if(player==null) {
+            if (player == null) {
                 return false;
             }
         }
@@ -249,7 +254,7 @@ public abstract class Game implements DBSerializable {
     @Override
     public void save() {
         synchronized (DB) {
-            if(DB.exists(this)) {
+            if (DB.exists(this)) {
                 DB.update(this);
             } else {
                 DB.write(this);
@@ -274,7 +279,7 @@ public abstract class Game implements DBSerializable {
 
     public void createPlayer(User user, Player player) {
         for (int i = 0; i < this.users.length; i++) {
-            if(this.users[i].equals(user)) {
+            if (this.users[i].equals(user)) {
                 this.players[i] = player;
             }
         }
@@ -283,5 +288,13 @@ public abstract class Game implements DBSerializable {
 
     public String getName() {
         return name;
+    }
+
+    public int getMapWidth() {
+        return mapWidth;
+    }
+
+    public int getMapHeight() {
+        return mapHeight;
     }
 }

@@ -103,7 +103,6 @@ public class LoginSubScene extends SubScene {
         root.getChildren().addAll(titleLabel, formContainer);
 
         getContentRoot().getChildren().add(root);
-        System.out.println("errer");
     }
 
     private void toggleMode(Label formTitle, Button actionButton, Button toggleButton) {

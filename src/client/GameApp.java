@@ -102,7 +102,7 @@ public class GameApp extends GameApplication {
         for (Player player1 : players) {
             player1.setGame(this.game);
         }
-//        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT); todo
+//        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT); users
         for (Player player : players) {
             player.setGame(this.game);
         }
