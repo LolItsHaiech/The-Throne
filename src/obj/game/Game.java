@@ -18,7 +18,6 @@ import util.OpenSimplex2S;
 import util.Position;
 import util.map.MapEntry;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
@@ -283,7 +282,20 @@ public abstract class Game implements DBSerializable {
                 this.players[i] = player;
             }
         }
+        if (this.isGameStarted()) {
+            this.generateMap();
+        }
         this.save();
+    }
+
+    public boolean userHasPlayer(User user) {
+        for (Player player : this.players) {
+            System.out.println(user);
+            if (player!=null && player.getUser().equals(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getName() {

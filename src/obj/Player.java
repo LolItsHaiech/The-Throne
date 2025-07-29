@@ -11,11 +11,13 @@ import util.Position;
 import util.map.Map;
 
 import java.io.Serializable;
+
 import util.Set;
 
 public class Player implements Serializable {
     private final User user;
     private Game game;
+    private final String name;
     private final Tribe tribe;
     private final LinkedList<Castle> castles;
     private final LinkedList<Soldier> soldiers;
@@ -29,7 +31,7 @@ public class Player implements Serializable {
 
     private final boolean[][] vision;
 
-    public Player(User user, Game game, Tribe tribe, int mapWidth, int mapHeight) {
+    public Player(User user, String name, Tribe tribe, Game game) {
         this.user = user;
         this.game = game;
         this.tribe = tribe;
@@ -38,7 +40,8 @@ public class Player implements Serializable {
         this.ironCount = 0;
         this.foodCount = 0;
         this.wealth = 0;
-        this.vision = new boolean[mapWidth][mapHeight];
+        this.vision = new boolean[game.getMapWidth()][game.getMapHeight()];
+        this.name = name;
         this.castles = new LinkedList<>();
         this.soldiers = new LinkedList<>();
         this.weapons = new Map<>();
@@ -178,14 +181,14 @@ public class Player implements Serializable {
         throw new ItemDoesntExistException();
     }
 
-    public Set<Position> getTerritory(){
+    public Set<Position> getTerritory() {
         Set<Position> res = new Set<>();
         for (Castle castle : this.castles) {
             int r = castle.getBorderRadius();
-            int minX = Math.max(castle.getPosition().x()-r, 0 );
-            int maxX = Math.min(castle.getPosition().x()+r, this.getGame().getMapWidth());
-            int minY = Math.max(castle.getPosition().y()-r, 0);
-            int maxY = Math.min(castle.getPosition().y()-r, this.getGame().getMapHeight());
+            int minX = Math.max(castle.getPosition().x() - r, 0);
+            int maxX = Math.min(castle.getPosition().x() + r, this.getGame().getMapWidth());
+            int minY = Math.max(castle.getPosition().y() - r, 0);
+            int maxY = Math.min(castle.getPosition().y() - r, this.getGame().getMapHeight());
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     res.addFirst(new Position(x, y));

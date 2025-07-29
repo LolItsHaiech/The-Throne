@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import obj.Player;
 import obj.auth.User;
 import obj.game.Game;
 import util.LinkedList;
@@ -151,6 +152,7 @@ public class GamesMenuSubScene extends SubScene {
 
         // Game name
         Label gameNameLabel = new Label(game.getName());
+        gameNameLabel.setPrefHeight(35);
         gameNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         gameNameLabel.setTextFill(Color.WHITE);
         gameNameLabel.setPrefWidth(150);
@@ -215,13 +217,18 @@ public class GamesMenuSubScene extends SubScene {
         actionButton.setManaged(!game.isEnded());
 
         if (!game.isGameStarted()) {
-            actionButton.setText("JOIN");
-            actionButton.setStyle("-fx-background-color: #2196F3; " +
-                                          "-fx-text-fill: white; " +
-                                          "-fx-font-size: 12; " +
-                                          "-fx-font-weight: bold; " +
-                                          "-fx-background-radius: 3;");
-            actionButton.setOnAction(e -> handleJoinGame(game));
+            if (!game.userHasPlayer(user)) {
+                actionButton.setText("JOIN");
+                actionButton.setStyle("-fx-background-color: #2196F3; " +
+                                              "-fx-text-fill: white; " +
+                                              "-fx-font-size: 12; " +
+                                              "-fx-font-weight: bold; " +
+                                              "-fx-background-radius: 3;");
+                actionButton.setOnAction(e -> handleJoinGame(game));
+            } else {
+                actionButton.setVisible(false);
+                actionButton.setManaged(false);
+            }
         } else {
             actionButton.setText("PLAY");
             actionButton.setStyle("-fx-background-color: #4CAF50; " +
@@ -257,11 +264,11 @@ public class GamesMenuSubScene extends SubScene {
     }
 
     private void handleJoinGame(Game game) {
-        // TODO: Implement join game logic
-        System.out.println("Join game: " + game.getName());
-        // This would handle player creation and joining the game
-        // Then refresh the games list
-        loadGames();
+        if (!game.userHasPlayer(user)) {
+            ((TheThrone) FXGL.getApp()).showCreatePlayerMenu(this.user, game);
+        } else {
+            System.out.println("Join game: " + game.getName());
+        }
     }
 
     private void handlePlayGame(Game game) {

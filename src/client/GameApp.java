@@ -95,10 +95,10 @@ public class GameApp extends GameApplication {
     @Override
     protected void initGame() {
         Player[] players = new Player[4];
-        this.player = players[0] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[1] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[2] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[3] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
+//        this.player = players[0] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
+//        players[1] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
+//        players[2] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
+//        players[3] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
         for (Player player1 : players) {
             player1.setGame(this.game);
         }
@@ -205,7 +205,6 @@ public class GameApp extends GameApplication {
                         entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mine_%s.png", tile.getHeight().toString()));
                 case MysticalContainer container -> {
                     String name = container.getName().replace(' ', '_').toLowerCase();
-                    System.out.println(name);
                     entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mystical/%s.png", name));
                 }
                 default -> {

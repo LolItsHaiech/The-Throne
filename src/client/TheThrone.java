@@ -1,6 +1,7 @@
 package client;
 
 import client.scenes.CreateGameSubScene;
+import client.scenes.CreatePlayerSubScene;
 import client.scenes.GamesMenuSubScene;
 import client.scenes.LoginSubScene;
 import com.almasb.fxgl.app.GameApplication;
@@ -10,6 +11,7 @@ import javafx.scene.paint.*;
 import obj.auth.User;
 
 import javafx.util.Duration;
+import obj.game.Game;
 
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
@@ -39,10 +41,7 @@ public class TheThrone extends GameApplication {
                 ));
 
 
-        FXGL.runOnce(() -> {
-            System.out.println("sdjwjwd");
-            FXGL.getSceneService().pushSubScene(new LoginSubScene());
-        }, javafx.util.Duration.ZERO);
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new LoginSubScene()), javafx.util.Duration.ZERO);
     }
 
     public void showGamesMenu(User user) {
@@ -54,6 +53,11 @@ public class TheThrone extends GameApplication {
     public void showCreateNewGameMenu(User user) {
         FXGL.getSceneService().popSubScene();
         FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new CreateGameSubScene(user)), Duration.ZERO);
+    }
+
+    public void showCreatePlayerMenu(User user, Game game) {
+        FXGL.getSceneService().popSubScene();
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new CreatePlayerSubScene(user, game)), Duration.ZERO);
     }
 
     public static void main(String[] args) {
