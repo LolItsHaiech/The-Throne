@@ -1,26 +1,24 @@
 package db;
 
-
 import db.interfaces.CheckFunc;
 import db.interfaces.DBSerializable;
 
 import java.io.*;
 import java.util.Iterator;
-
+import java.util.NoSuchElementException;
 
 // todo optimize
 // todo implement cache
 public class Database<T extends DBSerializable> implements Iterable<T> {
-    private File file;
+    private final File file;
     private final Object lock = new Object();
-
 
     public Database(String fileName) {
         this.file = new File(fileName + ".db");
     }
 
     public boolean write(T obj) {
-        File temp = new File(this.file + ".temp.db");
+        File temp = new File(this.file.getAbsolutePath() + ".temp");
         try {
             FileOutputStream fos = new FileOutputStream(temp);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -29,19 +27,19 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
                 oos.writeObject(t);
             }
             oos.writeObject(obj);
-            fos.close();
             oos.close();
+            fos.close();
 
         } catch (IOException e) {
             return false;
         }
 
-        synchronized (this.lock){
+        synchronized (this.lock) {
             this.file.delete();
-            temp.renameTo(file);
-            this.file = temp;
+            if (!temp.renameTo(this.file)) {
+                return false;
+            }
         }
-
 
         return true;
     }
@@ -74,7 +72,7 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
 
     public boolean update(T object) {
         boolean saved = false;
-        File tempFile = new File(file + ".temp.db");
+        File tempFile = new File(file.getAbsolutePath() + ".temp");
         try {
             FileOutputStream fos = new FileOutputStream(tempFile, false);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -88,22 +86,21 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
                 }
             }
 
-            fos.close();
             oos.close();
+            fos.close();
         } catch (IOException e) {
             return false;
         }
 
-        synchronized (this.lock){
+        synchronized (this.lock) {
             this.file.delete();
-            tempFile.renameTo(this.file);
-            this.file = tempFile;
+            if (!tempFile.renameTo(this.file)) {
+                return false;
+            }
         }
-
 
         return saved;
     }
-
 
     @Override
     public Iterator<T> iterator() {
@@ -115,20 +112,19 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
     }
 
     private class DatabaseItr implements Iterator<T> {
-        private final ObjectInputStream ois;
+        private ObjectInputStream ois;
         private T nextObj;
         private boolean finished;
 
         public DatabaseItr() throws IOException {
-            ObjectInputStream ois;
-            try{
-                ois = new ObjectInputStream(new FileInputStream(file));
+            try {
+                FileInputStream fis = new FileInputStream(file);
+                this.ois = new ObjectInputStream(fis);
                 this.finished = false;
             } catch (FileNotFoundException e) {
                 this.finished = true;
-                ois = null;
+                this.ois = null;
             }
-            this.ois = ois;
             advance();
         }
 
@@ -143,12 +139,22 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
             } catch (EOFException eof) {
                 finished = true;
                 nextObj = null;
+                closeStream();
+            } catch (IOException | ClassNotFoundException e) {
+                finished = true;
+                nextObj = null;
+                closeStream();
+                throw new RuntimeException("Error reading from database", e);
+            }
+        }
+
+        private void closeStream() {
+            if (ois != null) {
                 try {
                     ois.close();
                 } catch (IOException ignored) {
                 }
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException("Error reading from database", e);
+                ois = null;
             }
         }
 
@@ -159,6 +165,9 @@ public class Database<T extends DBSerializable> implements Iterable<T> {
 
         @Override
         public T next() {
+            if (finished) {
+                throw new NoSuchElementException();
+            }
             T current = nextObj;
             advance();
             return current;
