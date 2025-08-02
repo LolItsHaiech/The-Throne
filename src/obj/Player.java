@@ -188,7 +188,7 @@ public class Player implements Serializable {
             int minX = Math.max(castle.getPosition().x() - r, 0);
             int maxX = Math.min(castle.getPosition().x() + r, this.getGame().getMapWidth());
             int minY = Math.max(castle.getPosition().y() - r, 0);
-            int maxY = Math.min(castle.getPosition().y() - r, this.getGame().getMapHeight());
+            int maxY = Math.min(castle.getPosition().y() + r, this.getGame().getMapHeight());
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     res.addFirst(new Position(x, y));

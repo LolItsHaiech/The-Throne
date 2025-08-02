@@ -272,11 +272,22 @@ public class GamesMenuSubScene extends SubScene {
     }
 
     private void handlePlayGame(Game game) {
-        // TODO: Implement play game functionality
-        System.out.println("Play game: " + game.getName());
-        // This would transition to the actual game scene
-        // FXGL.getSceneService().popSubScene(); // Remove this menu
-        // ((TheThrone) FXGL.getApp()).startGame(game, user);
+        // Check if user has a player in this game
+        boolean hasPlayer = false;
+        for (Player player : game.getPlayers()) {
+            if (player != null && player.getUser().equals(user)) {
+                hasPlayer = true;
+                break;
+            }
+        }
+
+        if (!hasPlayer) {
+            System.out.println("Error: User doesn't have a player in this game!");
+            return;
+        }
+
+        // Start the game using the integrated game functionality
+        ((TheThrone) FXGL.getApp()).startGame(game, user);
     }
 
     public void refreshGames() {

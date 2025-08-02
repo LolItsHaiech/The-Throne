@@ -33,6 +33,10 @@ public abstract class Building implements Serializable {
     public abstract MaterialCost getBuildingPrice();
 
     public static LinkedList<BuildingFactory> getAllowedBuildingsToBuild(Player player, Position position) {
+        System.out.println("position = " + position);
+        for (Position position1 : player.getTerritory()) {
+            System.out.println(position1.x() + " " + position1.y());
+        }
         if (!player.getTerritory().exists(position)) {
             return new LinkedList<>();
         }
