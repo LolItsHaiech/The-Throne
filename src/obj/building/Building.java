@@ -18,6 +18,10 @@ public abstract class Building implements Serializable {
         this.position = position;
     }
 
+    public Position getPosition() {
+        return this.position;
+    }
+
     public void setOwner(Player owner) {
         this.owner = owner;
     }
@@ -28,7 +32,15 @@ public abstract class Building implements Serializable {
 
     public abstract MaterialCost getBuildingPrice();
 
-    public static LinkedList<BuildingFactory> getAllowedBuildingsToBuild(Tile tile) {
+    public static LinkedList<BuildingFactory> getAllowedBuildingsToBuild(Player player, Position position) {
+        System.out.println("position = " + position);
+        for (Position position1 : player.getTerritory()) {
+            System.out.println(position1.x() + " " + position1.y());
+        }
+        if (!player.getTerritory().exists(position)) {
+            return new LinkedList<>();
+        }
+        Tile tile = player.getGame().getTile(position);
         LinkedList<BuildingFactory> allowedBuildings = new LinkedList<>();
         if (tile.getBuilding()!=null) {
             return allowedBuildings;

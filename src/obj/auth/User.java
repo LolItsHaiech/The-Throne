@@ -31,7 +31,7 @@ public class User implements DBSerializable {
         if (password.equals(confirmPassword)) {
             User user = new User(displayName, username, password);
             synchronized (DB) {
-                if(DB.check(obj -> Objects.equals(obj.username, username))) {
+                if (DB.check(obj -> Objects.equals(obj.username, username))) {
                     throw new AuthenticationException("username already exists");
                 }
                 DB.write(user);
@@ -81,7 +81,23 @@ public class User implements DBSerializable {
     }
 
     public String toString() {
-        return "User { " + "displayName = " + displayName + "\n" + " username = " + username + "}";
+        return this.displayName + " (@" + this.username + ")";
+    }
+
+    public static User[] search(String query) {
+        int i = 0;
+        User[] res = new User[5];
+        synchronized (DB) {
+            for (User user : DB) {
+                if (user.username.toLowerCase().contains(query.toLowerCase())) {
+                    res[i++] = user;
+                    if (i==5) {
+                        break;
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     @Override
@@ -92,7 +108,7 @@ public class User implements DBSerializable {
     @Override
     public void save() {
         synchronized (DB) {
-            if(DB.exists(this)) {
+            if (DB.exists(this)) {
                 DB.update(this);
             } else {
                 DB.write(this);

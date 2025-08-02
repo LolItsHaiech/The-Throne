@@ -2,6 +2,10 @@ package client;
 
 import client.render.RenderSoldier;
 import client.render.RenderTile;
+import client.scenes.CreateGameSubScene;
+import client.scenes.CreatePlayerSubScene;
+import client.scenes.GamesMenuSubScene;
+import client.scenes.LoginSubScene;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.app.scene.Viewport;
@@ -10,7 +14,6 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.scene.CSS;
 import com.almasb.fxgl.texture.Texture;
-import com.google.gson.Gson;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -20,48 +23,42 @@ import javafx.scene.paint.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import obj.Player;
-import obj.Tribe;
-import obj.Weapon;
 import obj.auth.User;
 import obj.building.*;
 import obj.building.interfaces.functional.BuildingFactory;
 import obj.building.mystical.MysticalContainer;
-import obj.game.DominationGame;
 import obj.game.Game;
 import obj.map.Tile;
 import obj.soldier.Soldier;
-import obj.soldier.Warrior;
 import util.LinkedList;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.geometry.Pos;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
+
+import javafx.util.Duration;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
-
-public class BasicGameApp extends GameApplication {
-
-    private static final int TILE_WIDTH = 40;
-    private static final int TILE_HEIGHT = 20;
-    private static final int TILE_HEIGHT_OFFSET = 20;
-    private static final int MAP_WIDTH = 20;
-    private static final int MAP_HEIGHT = 20;
+public class TheThrone extends GameApplication {
 
     private static final int SCREEN_WIDTH = 1280;
     private static final int SCREEN_HEIGHT = 720;
 
+    // Game constants
+    private static final int TILE_WIDTH = 40;
+    private static final int TILE_HEIGHT = 20;
+    private static final int TILE_HEIGHT_OFFSET = 20;
+
     private static final int STAR_COUNT = 2000;
     private static final float STAR_RADIUS_MIN = 0f;
     private static final float STAR_RADIUS_MAX = 1.6f;
-    private static final float STAR_VELOCITY_X_MIN = 0.03f;
-    private static final float STAR_VELOCITY_Y_MIN = 0.06f;
-    private static final float STAR_VELOCITY_X_MAX = 0.10f;
-    private static final float STAR_VELOCITY_Y_MAX = 0.10f;
+    private static final float STAR_VELOCITY_X_MIN = 0.003f;
+    private static final float STAR_VELOCITY_Y_MIN = 0.006f;
+    private static final float STAR_VELOCITY_X_MAX = 0.010f;
+    private static final float STAR_VELOCITY_Y_MAX = 0.010f;
 
     private static final float STAR_TWINKLE_FREQUENCY_MIN = 0f;
     private static final float STAR_TWINKLE_FREQUENCY_MAX = 0.2f;
@@ -70,21 +67,20 @@ public class BasicGameApp extends GameApplication {
 
     private static final HashMap<String, Image> textureCache = new HashMap<>();
 
+    // Game state
+    private boolean gameActive = false;
     private Player player;
-    private Game game;
-    private Tile[][] map;
+    private Game currentGame;
     private RenderTile highlightedTile;
 
     private Star[] stars;
     private LinkedList<RenderSoldier> renderedSoldiers;
-    private LinkedList<RenderTile> renderedCloud;
 
     private boolean isSoldierMoving;
     private boolean isYourTurn;
 
     private VBox tileMenu;
     private Texture skipButton;
-
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -98,44 +94,13 @@ public class BasicGameApp extends GameApplication {
 
     @Override
     protected void initGame() {
-        Player[] players = new Player[4];
-        this.player = players[0] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[1] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[2] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        players[3] = new Player(new User("amin", "amin", "amin"), null, Tribe.human, MAP_WIDTH, MAP_HEIGHT);
-        for (Player player1 : players) {
-            player1.setGame(this.game);
-        }
-        this.game = new DominationGame(players, MAP_WIDTH, MAP_HEIGHT);
-        for (Player player : players) {
-            player.setGame(this.game);
-        }
-
-        this.game.getTile(new Position(0, 0)).setSoldier(new Warrior(Weapon.harpe, this.player, new Position(0, 0)));
-
-        this.map = this.game.getMap();
-        this.highlightedTile = null;
-        this.stars = new Star[STAR_COUNT];
-        this.isYourTurn = this.game.GetActivePlayer().equals(this.player);
-        this.isSoldierMoving = false;
-        this.renderedSoldiers = new LinkedList<>();
-        this.renderedCloud = new LinkedList<>();
-
         getGameScene().setBackgroundColor(
                 new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
                                    new Stop(0, Color.rgb(4, 8, 15)),
                                    new Stop(1, Color.rgb(10, 20, 96))
                 ));
 
-        getGameScene().appendCSS(new CSS("assets/css/style.css"));
-        Viewport viewport = getGameScene().getViewport();
-        viewport.setX(-SCREEN_WIDTH >> 1);
-        viewport.setY(-SCREEN_HEIGHT >> 1);
-        viewport.setZoom(1);
-
-
-        renderMap();
-        renderSky();
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new LoginSubScene()), Duration.ZERO);
     }
 
     @Override
@@ -145,6 +110,254 @@ public class BasicGameApp extends GameApplication {
         vars.put("wood", 0);
         vars.put("iron", 0);
         vars.put("stone", 0);
+    }
+
+    @Override
+    protected void initInput() {
+        Input input = getInput();
+
+        FXGL.onBtn(MouseButton.PRIMARY, () -> {
+            if (!gameActive) return;
+
+            Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
+            if (this.isSoldierMoving) {
+                Soldier soldier = this.currentGame.getTile(this.highlightedTile.position()).getSoldier();
+                if (soldier != null && !soldier.hasMoved()) {
+                    this.isSoldierMoving = false;
+
+                    if (this.currentGame.getTile(this.highlightedTile.position()).getSoldier().moveTo(pos)) {
+                        for (RenderSoldier renderedSoldier : this.renderedSoldiers) {
+                            renderedSoldier.setPosition(pos);
+                            Position newPos = getIsometricToCoords(pos.x(), pos.y());
+                            renderedSoldier.getEntity().setX(newPos.x());
+                            renderedSoldier.getEntity().setY(newPos.y());
+                            renderedSoldier.getEntity().setZIndex(getZIndex(pos.x(), pos.y(), 5));
+                        }
+                    }
+                }
+            } else {
+                renderHighlightedTile(pos.x(), pos.y());
+            }
+        });
+
+        FXGL.onKeyUp(KeyCode.F11, () -> {
+            getSettings().getFullScreen().set(!getSettings().getFullScreen().get());
+            getGameScene().getViewport().setHeight(SCREEN_HEIGHT);
+            getGameScene().getViewport().setWidth(SCREEN_WIDTH);
+        });
+
+        FXGL.onKey(KeyCode.S, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setY(viewPort.getY() + 1);
+        });
+        FXGL.onKey(KeyCode.W, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setY(viewPort.getY() - 1);
+        });
+        FXGL.onKey(KeyCode.D, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setX(viewPort.getX() + 1);
+        });
+        FXGL.onKey(KeyCode.A, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setX(viewPort.getX() - 1);
+        });
+        FXGL.onKey(KeyCode.Z, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setZoom(viewPort.getZoom() + .01);
+        });
+        FXGL.onKey(KeyCode.X, () -> {
+            if (!gameActive) return;
+            Viewport viewPort = getGameScene().getViewport();
+            viewPort.setZoom(viewPort.getZoom() - .01);
+        });
+
+        FXGL.onKeyDown(KeyCode.ESCAPE, () -> {
+            if (gameActive) {
+                exitGame();
+            }
+        });
+    }
+
+    @Override
+    protected void initUI() {
+        // UI will be initialized when game starts
+    }
+
+    @Override
+    protected void onUpdate(double tpf) {
+        if (gameActive && player != null) {
+            FXGL.getWorldProperties().setValue("wealth", this.player.getWealth());
+            FXGL.getWorldProperties().setValue("food", this.player.getFoodCount());
+            FXGL.getWorldProperties().setValue("wood", this.player.getWoodCount());
+            FXGL.getWorldProperties().setValue("iron", this.player.getIronCount());
+            FXGL.getWorldProperties().setValue("stone", this.player.getStoneCount());
+        }
+    }
+
+    // Menu navigation methods
+    public void showGamesMenu(User user) {
+        FXGL.getSceneService().popSubScene();
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new GamesMenuSubScene(user)), Duration.ZERO);
+    }
+
+    public void showCreateNewGameMenu(User user) {
+        FXGL.getSceneService().popSubScene();
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new CreateGameSubScene(user)), Duration.ZERO);
+    }
+
+    public void showCreatePlayerMenu(User user, Game game) {
+        FXGL.getSceneService().popSubScene();
+        FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new CreatePlayerSubScene(user, game)), Duration.ZERO);
+    }
+
+    // Game starting method - this is what gets called when "PLAY" is clicked
+    public void startGame(Game game, User user) {
+        this.currentGame = game;
+
+        // Find the player for this user in the game
+        for (Player p : game.getPlayers()) {
+            if (p != null && p.getUser().equals(user)) {
+                this.player = p;
+                break;
+            }
+        }
+
+        if (this.player == null) {
+            System.err.println("Player not found in game!");
+            return;
+        }
+
+        FXGL.getSceneService().popSubScene();
+
+        // Initialize game state
+        initializeGameState();
+
+        // Set game as active
+        this.gameActive = true;
+
+        // Initialize game UI
+        initializeGameUI();
+
+        // Render the game
+        renderGameWorld();
+    }
+
+    private void initializeGameState() {
+        this.highlightedTile = null;
+        this.stars = new Star[STAR_COUNT];
+        this.isYourTurn = this.currentGame.GetActivePlayer().equals(this.player);
+        this.isSoldierMoving = false;
+        this.renderedSoldiers = new LinkedList<>();
+
+        // Clear any existing entities
+        FXGL.getGameWorld().getEntities().forEach(Entity::removeFromWorld);
+
+        // Clear UI nodes
+        getGameScene().getUINodes().clear();
+
+        // Setup viewport
+        getGameScene().appendCSS(new CSS("assets/css/style.css"));
+        Viewport viewport = getGameScene().getViewport();
+        viewport.setX(-SCREEN_WIDTH >> 1);
+        viewport.setY(-SCREEN_HEIGHT >> 1);
+        viewport.setZoom(1);
+    }
+
+    private void initializeGameUI() {
+        if (!this.isYourTurn) {
+            stringBuilderUI(110, "not your turn");
+        }
+        stringBuilderUI(130, "wealth", "Wealth: %d$");
+        stringBuilderUI(150, "wood", "Wood: %d");
+        stringBuilderUI(170, "stone", "Stone: %d");
+        stringBuilderUI(190, "food", "Food: %d");
+        stringBuilderUI(210, "iron", "Iron: %d");
+
+        tileMenu = new VBox(10);
+        tileMenu.setTranslateX(SCREEN_WIDTH - 300);
+        tileMenu.setTranslateY(100);
+        tileMenu.setAlignment(Pos.TOP_CENTER);
+        tileMenu.setFillWidth(true);
+        tileMenu.setMinWidth(200);
+        getGameScene().addUINode(tileMenu);
+
+        if (this.isYourTurn) {
+            Image image = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
+            this.skipButton = new Texture(image);
+            this.skipButton.hoverProperty().addListener((observable, oldValue, newValue) -> {
+                Image img;
+                if (newValue) {
+                    img = textureCache.computeIfAbsent("ui/end_turn_hovered.png", file -> getAssetLoader().loadImage(file));
+                } else {
+                    img = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
+                }
+                this.skipButton.setImage(img);
+            });
+            this.skipButton.setOnMouseClicked(mouseEvent -> {
+                if (this.isYourTurn) {
+                    stringBuilderUI(110, "not your turn");
+                    this.currentGame.nextTurn();
+                    this.currentGame.save();
+                    this.isYourTurn = false;
+                    removeUINode(this.tileMenu);
+                    removeUINode(this.skipButton);
+                }
+
+                this.skipButton.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
+            });
+            this.skipButton.setX(SCREEN_WIDTH - 230);
+            this.skipButton.setY(SCREEN_HEIGHT - 160);
+            addUINode(this.skipButton);
+        }
+
+        // Add exit button
+        Button exitButton = new Button("Exit to Menu");
+        exitButton.setPrefHeight(40);
+        exitButton.setPrefWidth(120);
+        exitButton.setStyle("-fx-background-color: #f44336; " +
+                                    "-fx-text-fill: white; " +
+                                    "-fx-font-size: 12; " +
+                                    "-fx-font-weight: bold; " +
+                                    "-fx-background-radius: 5;");
+        exitButton.setTranslateX(10);
+        exitButton.setTranslateY(10);
+        exitButton.setOnAction(e -> exitGame());
+        getGameScene().addUINode(exitButton);
+    }
+
+    private void renderGameWorld() {
+        renderMap();
+        renderSky();
+    }
+
+    private void exitGame() {
+        this.gameActive = false;
+
+        List<Entity> entities = new ArrayList<>(FXGL.getGameWorld().getEntities());
+        for (Entity entity : entities) {
+            entity.removeFromWorld();
+        }
+
+        if (this.tileMenu != null) {
+            getGameScene().removeUINode(this.tileMenu);
+        }
+        if (this.skipButton != null) {
+            getGameScene().removeUINode(this.skipButton);
+        }
+
+        List<javafx.scene.Node> uiNodes = new ArrayList<>(getGameScene().getUINodes());
+        for (javafx.scene.Node node : uiNodes) {
+            getGameScene().removeUINode(node);
+        }
+        getGameScene().getContentRoot().getChildren().clear();
+        getGameScene().clearCSS();
+        showGamesMenu(this.player.getUser());
     }
 
     private static Position getIsometricToCoords(int x, int y) {
@@ -162,21 +375,17 @@ public class BasicGameApp extends GameApplication {
     }
 
     private void renderMap() {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < currentGame.getMapWidth(); x++) {
+            for (int y = 0; y < currentGame.getMapHeight(); y++) {
                 Position coords = getIsometricToCoords(x, y);
-                Tile tile = map[x][y];
+                Tile tile = currentGame.getMap()[x][y];
                 entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
-                if (map[x][y].hasTree()) {
+                if (currentGame.getMap()[x][y].hasTree()) {
                     entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
                 }
-//                if (!this.player.getVision()[x][y]) {
-//                    this.renderedCloud.addFirst(new RenderTile(
-//                            this.map[x][y],
-//                            new Position(x, y),
-//                            entityBuilder(coords.x(), coords.y(), 6, "tiles/cloud_tile.png")
-//                    ));
-//                } todo
+                if (tile.getBuilding() instanceof Castle) {
+                    System.out.println("yay");
+                }
                 renderBuilding(tile, x, y);
                 renderSoldier(tile, x, y);
             }
@@ -210,7 +419,6 @@ public class BasicGameApp extends GameApplication {
                         entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mine_%s.png", tile.getHeight().toString()));
                 case MysticalContainer container -> {
                     String name = container.getName().replace(' ', '_').toLowerCase();
-                    System.out.println(name);
                     entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mystical/%s.png", name));
                 }
                 default -> {
@@ -223,7 +431,7 @@ public class BasicGameApp extends GameApplication {
         if (this.highlightedTile != null) {
             this.highlightedTile.entity().removeFromWorld();
         }
-        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) {
+        if (x < 0 || x >= currentGame.getMapWidth() || y < 0 || y >= currentGame.getMapHeight()) {
             this.highlightedTile = null;
             this.updateTileMenu();
             return;
@@ -231,13 +439,12 @@ public class BasicGameApp extends GameApplication {
 
         Position isoCoords = getIsometricToCoords(x, y);
         this.highlightedTile = new RenderTile(
-                this.map[x][y],
+                currentGame.getMap()[x][y],
                 new Position(x, y),
                 entityBuilder(isoCoords.x(), isoCoords.y(), 1, "tiles/selected_tile.png")
         );
         this.updateTileMenu();
     }
-
 
     private void renderSky() {
         Canvas starCanvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -262,6 +469,8 @@ public class BasicGameApp extends GameApplication {
         FXGL.getGameScene().getContentRoot().getChildren().addFirst(starCanvas);
 
         FXGL.getGameScene().addListener((i) -> {
+            if (!gameActive) return;
+
             gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
             for (Star star : stars) {
@@ -295,126 +504,10 @@ public class BasicGameApp extends GameApplication {
         return String.format("tiles/%s_%s.png", biomeName, heightName);
     }
 
-
-    @Override
-    protected void initUI() {
-        if (!this.isYourTurn)
-            stringBuilderUI(110, "not your turn");
-        stringBuilderUI(130, "wealth", "Wealth: %d$");
-        stringBuilderUI(150, "wood", "Wood: %d");
-        stringBuilderUI(170, "stone", "Stone: %d");
-        stringBuilderUI(190, "food", "Food: %d");
-        stringBuilderUI(210, "iron", "Iron: %d");
-
-        tileMenu = new VBox(10);
-        tileMenu.setTranslateX(SCREEN_WIDTH - 300);
-        tileMenu.setTranslateY(100);
-        tileMenu.setAlignment(Pos.TOP_CENTER);
-        tileMenu.setFillWidth(true);
-        tileMenu.setMinWidth(200);
-        getGameScene().addUINode(tileMenu);
-
-        if (this.isYourTurn) {
-            Image image = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
-            this.skipButton = new Texture(image);
-            this.skipButton.hoverProperty().addListener((observable, oldValue, newValue) -> {
-                Image img;
-                if (newValue) {
-                    img = textureCache.computeIfAbsent("ui/end_turn_hovered.png", file -> getAssetLoader().loadImage(file));
-                } else {
-                    img = textureCache.computeIfAbsent("ui/end_turn.png", file -> getAssetLoader().loadImage(file));
-                }
-                this.skipButton.setImage(img);
-            });
-            this.skipButton.setOnMouseClicked(mouseEvent -> {
-                if (this.isYourTurn) {
-                    stringBuilderUI(110, "not your turn");
-                    this.game.nextTurn();
-                    this.game.save();
-                    this.isYourTurn = false;
-                    removeUINode(this.tileMenu);
-                    removeUINode(this.skipButton);
-                }
-
-                this.skipButton.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
-            });
-            this.skipButton.setX(SCREEN_WIDTH - 230);
-            this.skipButton.setY(SCREEN_HEIGHT - 160);
-            addUINode(this.skipButton);
-        }
-    }
-
-    @Override
-    protected void initInput() {
-        Input input = getInput();
-
-        FXGL.onBtn(MouseButton.PRIMARY, () -> {
-            Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
-            if (this.isSoldierMoving) {
-                Soldier soldier = this.game.getTile(this.highlightedTile.position()).getSoldier();
-                if (soldier != null && !soldier.hasMoved()) {
-                    this.isSoldierMoving = false;
-
-                    if (this.game.getTile(this.highlightedTile.position()).getSoldier().moveTo(pos)) {
-                        for (RenderSoldier renderedSoldier : this.renderedSoldiers) {
-                            renderedSoldier.setPosition(pos);
-                            Position newPos = getIsometricToCoords(pos.x(), pos.y());
-                            renderedSoldier.getEntity().setX(newPos.x());
-                            renderedSoldier.getEntity().setY(newPos.y());
-                            renderedSoldier.getEntity().setZIndex(getZIndex(pos.x(), pos.y(), 5));
-                        }
-                    }
-                }
-            } else {
-                renderHighlightedTile(pos.x(), pos.y());
-            }
-        });
-
-        FXGL.onKeyUp(KeyCode.F11, () -> {
-            getSettings().getFullScreen().set(!getSettings().getFullScreen().get());
-            getGameScene().getViewport().setHeight(SCREEN_HEIGHT);
-            getGameScene().getViewport().setWidth(SCREEN_WIDTH);
-        });
-
-        FXGL.onKey(KeyCode.DOWN, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setY(viewPort.getY() + 1);
-        });
-        FXGL.onKey(KeyCode.UP, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setY(viewPort.getY() - 1);
-        });
-        FXGL.onKey(KeyCode.RIGHT, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setX(viewPort.getX() + 1);
-        });
-        FXGL.onKey(KeyCode.LEFT, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setX(viewPort.getX() - 1);
-        });
-        FXGL.onKey(KeyCode.Z, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setZoom(viewPort.getZoom() + .01);
-        });
-        FXGL.onKey(KeyCode.X, () -> {
-            Viewport viewPort = getGameScene().getViewport();
-            viewPort.setZoom(viewPort.getZoom() - .01);
-        });
-    }
-
-    @Override
-    protected void onUpdate(double tpf) {
-        FXGL.getWorldProperties().setValue("wealth", this.player.getWealth());
-        FXGL.getWorldProperties().setValue("food", this.player.getFoodCount());
-        FXGL.getWorldProperties().setValue("wood", this.player.getWoodCount());
-        FXGL.getWorldProperties().setValue("iron", this.player.getIronCount());
-        FXGL.getWorldProperties().setValue("stone", this.player.getStoneCount());
-    }
-
     private void updateTileMenu() {
+        System.out.println("TheThrone.updateTileMenu");
         if (!this.isYourTurn)
-            return; // todo not always
-
+            return;
 
         this.tileMenu.getChildren().clear();
         if (this.highlightedTile == null) {
@@ -423,18 +516,20 @@ public class BasicGameApp extends GameApplication {
         Tile tile = this.highlightedTile.tile();
 
         if (tile.getBuilding() != null) {
+            System.out.println("TheThrone.updateTileMenu1");
             Button buildingInfo = new Button("View Building");
             buildingInfo.setMinWidth(200);
 
             buildingInfo.setOnAction(e -> System.out.println("Building: " + tile.getBuilding().getClass().getSimpleName()));
             this.tileMenu.getChildren().add(buildingInfo);
         } else {
-            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(tile)) {
-                // <-- here
+            System.out.println("TheThrone.updateTileMenu2");
+            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.position())) {
+                System.out.println("haha");
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
                 btn.setMinWidth(200);
                 btn.setOnAction(e -> {
-                    this.map[this.highlightedTile.position().x()][this.highlightedTile.position().y()].setBuilding(
+                    this.currentGame.getMap()[this.highlightedTile.position().x()][this.highlightedTile.position().y()].setBuilding(
                             factory.create(this.player, this.highlightedTile.position())
                     );
                     renderBuilding(tile, this.highlightedTile.position().x(), this.highlightedTile.position().y());
@@ -471,7 +566,6 @@ public class BasicGameApp extends GameApplication {
                 .buildAndAttach();
     }
 
-
     private static void stringBuilderUI(int x, int y, String property, String value) {
         Text textPixels = new Text();
         textPixels.setTranslateX(x);
@@ -499,7 +593,6 @@ public class BasicGameApp extends GameApplication {
     private static void stringBuilderUI(int y, String property, String value) {
         stringBuilderUI(100, y, property, value);
     }
-
 
     private static class Star {
         private double x;

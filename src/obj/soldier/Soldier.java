@@ -186,14 +186,18 @@ public abstract class Soldier implements Serializable {
 
         int damage = this.getDamage();
         int defence = target.getDefence();
-        int netDamage = Math.max(0, damage - defence); // اگه دفاع بیشتر از حمله بود، صفر بشه
+        int netDamage = Math.max(0, damage - defence);
 
         target.setHealth(target.getHealth() - netDamage);
 
         if (target.getHealth() <= 0) {
             this.getPlayer().getGame().getMap()[targetPos.x()][targetPos.y()].setSoldier(null);
         }
-        // می‌تونی لاگ یا افکت هم بزاری
-        return true; // حمله با موفقیت انجام شد
+        return true;
+    }
+
+
+    enum Type {
+        warrior, rider, commander, wizard
     }
 }

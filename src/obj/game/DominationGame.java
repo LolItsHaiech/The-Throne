@@ -1,6 +1,7 @@
 package obj.game;
 
 import obj.Player;
+import obj.auth.User;
 import obj.building.Castle;
 import obj.map.Tile;
 
@@ -11,16 +12,19 @@ import obj.map.Tile;
 
 public class DominationGame extends Game{
 
-    public DominationGame(Player[] players, int mapWidth, int mapHeight) {
-        super(players, mapWidth, mapHeight);
+    public DominationGame(String name, User[] users, int mapWidth, int mapHeight) {
+        super(name, users, mapWidth, mapHeight);
     }
 
-    public DominationGame(Player[] players, int mapWidth, int mapHeight, long seed) {
-        super(players, mapWidth, mapHeight, seed);
+    public DominationGame(String name, User[] users, int mapWidth, int mapHeight, long seed) {
+        super(name, users, mapWidth, mapHeight, seed);
     }
 
     @Override
     public boolean isEnded() {
+        if (this.map == null) {
+            return false;
+        }
         Player p = null;
         for (Tile[] tiles : this.map) {
             for (Tile tile : tiles) {

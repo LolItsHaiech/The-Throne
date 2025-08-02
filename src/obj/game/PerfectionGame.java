@@ -1,6 +1,7 @@
 package obj.game;
 
 import obj.Player;
+import obj.auth.User;
 
 /**
  * <h2>Perfection Game</h2>
@@ -10,13 +11,13 @@ import obj.Player;
 public class PerfectionGame extends Game {
     private final int turnCountLimit;
 
-    public PerfectionGame(Player[] players, int mapWidth, int mapHeight, int turnCountLimit) {
-        super(players, mapWidth, mapHeight);
+    public PerfectionGame(String name, User[] users, int mapWidth, int mapHeight, int turnCountLimit) {
+        super(name, users, mapWidth, mapHeight);
         this.turnCountLimit = turnCountLimit;
     }
 
-    public PerfectionGame(Player[] players, int mapWidth, int mapHeight, long seed, int turnCountLimit) {
-        super(players, mapWidth, mapHeight, seed);
+    public PerfectionGame(String name, User[] users, int mapWidth, int mapHeight, long seed, int turnCountLimit) {
+        super(name, users, mapWidth, mapHeight, seed);
         this.turnCountLimit = turnCountLimit;
     }
 
