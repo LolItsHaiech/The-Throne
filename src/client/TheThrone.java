@@ -1,6 +1,5 @@
 package client;
 
-import client.render.RenderSoldier;
 import client.render.RenderTile;
 import client.scenes.CreateGameSubScene;
 import client.scenes.CreatePlayerSubScene;
@@ -30,7 +29,6 @@ import obj.building.mystical.MysticalContainer;
 import obj.game.Game;
 import obj.map.Tile;
 import obj.soldier.Soldier;
-import util.LinkedList;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
@@ -74,7 +72,9 @@ public class TheThrone extends GameApplication {
     private RenderTile highlightedTile;
 
     private Star[] stars;
-    private LinkedList<RenderSoldier> renderedSoldiers;
+
+    // New rendering system
+    private RenderTile[][] renderTiles; // Complete array of all rendered tiles
 
     private boolean isSoldierMoving;
     private boolean isYourTurn;
@@ -126,13 +126,8 @@ public class TheThrone extends GameApplication {
                     this.isSoldierMoving = false;
 
                     if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().moveTo(pos)) {
-                        for (RenderSoldier renderedSoldier : this.renderedSoldiers) {
-                            renderedSoldier.setPosition(pos);
-                            Position newPos = getIsometricToCoords(pos.x(), pos.y());
-                            renderedSoldier.getEntity().setX(newPos.x());
-                            renderedSoldier.getEntity().setY(newPos.y());
-                            renderedSoldier.getEntity().setZIndex(getZIndex(pos.x(), pos.y(), 5));
-                        }
+                        // Update the map instead of manually moving soldiers
+                        updateMap();
                     }
                 }
             } else {
@@ -253,7 +248,9 @@ public class TheThrone extends GameApplication {
         this.stars = new Star[STAR_COUNT];
         this.isYourTurn = this.currentGame.GetActivePlayer().equals(this.player);
         this.isSoldierMoving = false;
-        this.renderedSoldiers = new LinkedList<>();
+
+        // Initialize the render tiles array
+        this.renderTiles = new RenderTile[currentGame.getMapWidth()][currentGame.getMapHeight()];
 
         // Clear any existing entities
         FXGL.getGameWorld().getEntities().forEach(Entity::removeFromWorld);
@@ -316,7 +313,6 @@ public class TheThrone extends GameApplication {
             addUINode(this.skipButton);
         }
 
-        // Add exit button
         Button exitButton = new Button("Exit to Menu");
         exitButton.setPrefHeight(40);
         exitButton.setPrefWidth(120);
@@ -379,49 +375,122 @@ public class TheThrone extends GameApplication {
             for (int y = 0; y < currentGame.getMapHeight(); y++) {
                 Position coords = getIsometricToCoords(x, y);
                 Tile tile = currentGame.getMap()[x][y];
-                entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
-                if (currentGame.getMap()[x][y].hasTree()) {
-                    entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
+
+                Entity tileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
+
+                Entity treeEntity = null;
+                if (tile.hasTree()) {
+                    treeEntity = entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
                 }
-                renderBuilding(tile, x, y);
-                renderSoldier(tile, x, y);
+
+                Entity buildingEntity = createBuildingEntity(tile, coords.x(), coords.y());
+
+                Entity soldierEntity = createSoldierEntity(tile, coords.x(), coords.y());
+
+                this.renderTiles[x][y] = new RenderTile(
+                        new Position(x, y),
+                        tileEntity,
+                        treeEntity,
+                        buildingEntity,
+                        soldierEntity
+                );
             }
         }
     }
 
-    private void renderSoldier(Tile tile, int x, int y) {
-        Soldier soldier = tile.getSoldier();
-        Position coords = getIsometricToCoords(x, y);
-        if (soldier != null) {
-            this.renderedSoldiers.addFirst(new RenderSoldier(
-                    soldier, coords, entityBuilder(coords.x(), coords.y(), 5, "soldiers/Untitled.png")));
+    public void updateMap() {
+        for (int x = 0; x < currentGame.getMapWidth(); x++) {
+            for (int y = 0; y < currentGame.getMapHeight(); y++) {
+                Tile gameTile = currentGame.getMap()[x][y];
+                RenderTile renderTile = this.renderTiles[x][y];
+                Position coords = getIsometricToCoords(x, y);
+                updateTreeRender(gameTile, renderTile, coords.x(), coords.y());
+                updateBuildingRender(gameTile, renderTile, coords.x(), coords.y());
+                updateSoldierRender(gameTile, renderTile, coords.x(), coords.y());
+            }
         }
     }
 
-    private void renderBuilding(Tile tile, int x, int y) {
+    private void updateTreeRender(Tile gameTile, RenderTile renderTile, int coordsX, int coordsY) {
+        boolean hasTree = gameTile.hasTree();
+        boolean hasTreeRender = renderTile.getTreeRender() != null;
+
+        if (hasTree && !hasTreeRender) {
+            Entity treeEntity = entityBuilder(coordsX, coordsY, 4, "features/tree.png");
+            renderTile.setTreeRender(treeEntity);
+        } else if (!hasTree && hasTreeRender) {
+            renderTile.getTreeRender().removeFromWorld();
+            renderTile.setTreeRender(null);
+        }
+    }
+
+    private void updateBuildingRender(Tile gameTile, RenderTile renderTile, int coordsX, int coordsY) {
+        Building gameBuilding = gameTile.getBuilding();
+        Entity renderBuilding = renderTile.getBuildingRender();
+
+        if (gameBuilding != null && renderBuilding == null) {
+            Entity buildingEntity = createBuildingEntity(gameTile, coordsX, coordsY);
+            renderTile.setBuildingRender(buildingEntity);
+        } else if (gameBuilding == null && renderBuilding != null) {
+            renderBuilding.removeFromWorld();
+            renderTile.setBuildingRender(null);
+        } else if (gameBuilding != null) {
+            renderBuilding.removeFromWorld();
+            Entity newBuildingEntity = createBuildingEntity(gameTile, coordsX, coordsY);
+            renderTile.setBuildingRender(newBuildingEntity);
+        }
+    }
+
+    private void updateSoldierRender(Tile gameTile, RenderTile renderTile, int coordsX, int coordsY) {
+        Soldier gameSoldier = gameTile.getSoldier();
+        Entity renderSoldier = renderTile.getSoldierEntity();
+
+        if (gameSoldier != null && renderSoldier == null) {
+            Entity soldierEntity = createSoldierEntity(gameTile, coordsX, coordsY);
+            renderTile.setSoldierEntity(soldierEntity);
+        } else if (gameSoldier == null && renderSoldier != null) {
+            renderSoldier.removeFromWorld();
+            renderTile.setSoldierEntity(null);
+        } else if (gameSoldier != null) {
+            Position newCoords = getIsometricToCoords(renderTile.getPosition().x(), renderTile.getPosition().y());
+            renderSoldier.setX(newCoords.x());
+            renderSoldier.setY(newCoords.y());
+            renderSoldier.setZIndex(getZIndex(renderTile.getPosition().x(), renderTile.getPosition().y(), 5));
+        }
+    }
+
+    private Entity createBuildingEntity(Tile tile, int coordsX, int coordsY) {
         Building building = tile.getBuilding();
-        Position coords = getIsometricToCoords(x, y);
-        if (building != null) {
-            switch (building) {
-                case Castle ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/castle.png");
-                case WizardTower wizardTower -> {
-                    String magic = wizardTower.getMagic().toString();
-                    String assetName = String.format("buildings/wizardtowers/%stower.png", magic.substring(0, magic.length() - 5));
-                    entityBuilder(coords.x(), coords.y(), 4, assetName);
-                }
-                case Barrack ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/barrack.png");
-                case Farmland ignored -> entityBuilder(coords.x(), coords.y(), 4, "buildings/farmland.png");
-                case LumberHut ignored -> entityBuilder(coords.x(), coords.y(), 3, "buildings/lumberhut.png");
-                case Mine ignored ->
-                        entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mine_%s.png", tile.getHeight().toString()));
-                case MysticalContainer container -> {
-                    String name = container.getName().replace(' ', '_').toLowerCase();
-                    entityBuilder(coords.x(), coords.y(), 4, String.format("buildings/mystical/%s.png", name));
-                }
-                default -> {
-                }
+        if (building == null) return null;
+
+        String texture = getBuildingTexture(building, tile);
+
+        return entityBuilder(coordsX, coordsY, 4, texture);
+    }
+
+    private String getBuildingTexture(Building building, Tile tile) {
+        return switch (building) {
+            case Castle ignored -> "buildings/castle.png";
+            case WizardTower wizardTower -> {
+                String magic = wizardTower.getMagic().toString();
+                yield String.format("buildings/wizardtowers/%stower.png", magic.substring(0, magic.length() - 5));
             }
-        }
+            case Barrack ignored -> "buildings/barrack.png";
+            case Farmland ignored -> "buildings/farmland.png";
+            case LumberHut ignored -> "buildings/lumberhut.png";
+            case Mine ignored -> String.format("buildings/mine_%s.png", tile.getHeight().toString());
+            case MysticalContainer container -> {
+                String name = container.getName().replace(' ', '_').toLowerCase();
+                yield String.format("buildings/mystical/%s.png", name);
+            }
+            default -> null;
+        };
+    }
+
+    private Entity createSoldierEntity(Tile tile, int coordsX, int coordsY) {
+        if (tile.getSoldier() == null) return null;
+
+        return entityBuilder(coordsX, coordsY, 5, "soldiers/Untitled.png");
     }
 
     private void renderHighlightedTile(int x, int y) {
@@ -518,7 +587,6 @@ public class TheThrone extends GameApplication {
             buildingInfo.setOnAction(e -> System.out.println("Building: " + tile.getBuilding().getClass().getSimpleName()));
             this.tileMenu.getChildren().add(buildingInfo);
         } else {
-            System.out.println("TheThrone.updateTileMenu2");
             for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.getPosition())) {
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
                 btn.setMinWidth(200);
@@ -526,8 +594,7 @@ public class TheThrone extends GameApplication {
                     this.currentGame.getMap()[this.highlightedTile.getPosition().x()][this.highlightedTile.getPosition().y()].setBuilding(
                             factory.create(this.player, this.highlightedTile.getPosition())
                     );
-                    renderBuilding(tile, this.highlightedTile.getPosition().x(), this.highlightedTile.getPosition().y());
-
+                    updateMap();
                     updateTileMenu();
                 });
                 this.tileMenu.getChildren().add(btn);
