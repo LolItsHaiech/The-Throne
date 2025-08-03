@@ -12,6 +12,7 @@ import obj.building.interfaces.CollectorBuilding;
 import obj.building.mystical.MysticalContainer;
 import obj.map.Tile;
 import obj.soldier.Soldier;
+import obj.soldier.Warrior;
 import obj.soldier.wizard.functional.Magic;
 import util.LinkedList;
 import util.OpenSimplex2S;
@@ -136,6 +137,8 @@ public abstract class Game implements DBSerializable {
             map[x][y].setBuilding(castle);
             map[x][y].setTree(false);
             map[x][y].setHeight(Tile.Height.flat);
+
+            map[x][y].setSoldier(new Warrior(Weapon.spear, player, new Position(x, y)));
         }
         for (Magic magic : Magic.values()) {
             int x, y;

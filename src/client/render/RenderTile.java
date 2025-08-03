@@ -9,13 +9,15 @@ public class RenderTile {
     private Entity treeRender;
     private Entity buildingRender;
     private Entity soldierEntity;
+    private boolean hasFog;
 
-    public RenderTile(Position position, Entity tileRender, Entity treeRender, Entity buildingRender, Entity soldierEntity) {
+    public RenderTile(Position position, Entity tileRender, Entity treeRender, Entity buildingRender, Entity soldierEntity, boolean hasFog) {
         this.position = position;
         this.tileRender = tileRender;
         this.treeRender = treeRender;
         this.buildingRender = buildingRender;
         this.soldierEntity = soldierEntity;
+        this.hasFog = hasFog;
     }
 
     public Position getPosition() {
@@ -48,5 +50,13 @@ public class RenderTile {
 
     public void setBuildingRender(Entity buildingRender) {
         this.buildingRender = buildingRender;
+    }
+
+    public boolean hasFog() {
+        return hasFog;
+    }
+
+    public void setHasFog(boolean hasFog) {
+        this.hasFog = hasFog;
     }
 }

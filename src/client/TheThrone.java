@@ -375,24 +375,35 @@ public class TheThrone extends GameApplication {
             for (int y = 0; y < currentGame.getMapHeight(); y++) {
                 Position coords = getIsometricToCoords(x, y);
                 Tile tile = currentGame.getMap()[x][y];
+                boolean hasFog = !player.getVision()[x][y];
 
-                Entity tileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
-
+                Entity tileEntity;
                 Entity treeEntity = null;
-                if (tile.hasTree()) {
-                    treeEntity = entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
+                Entity buildingEntity = null;
+                Entity soldierEntity = null;
+
+                if (hasFog) {
+                    // Render fog tile instead of actual tile
+                    tileEntity = entityBuilder(coords.x(), coords.y(), 0, "tiles/cloud_tile.png");
+                } else {
+                    // Render normal tile and all objects on it
+                    tileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
+
+                    if (tile.hasTree()) {
+                        treeEntity = entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
+                    }
+
+                    buildingEntity = createBuildingEntity(tile, coords.x(), coords.y());
+                    soldierEntity = createSoldierEntity(tile, coords.x(), coords.y());
                 }
-
-                Entity buildingEntity = createBuildingEntity(tile, coords.x(), coords.y());
-
-                Entity soldierEntity = createSoldierEntity(tile, coords.x(), coords.y());
 
                 this.renderTiles[x][y] = new RenderTile(
                         new Position(x, y),
                         tileEntity,
                         treeEntity,
                         buildingEntity,
-                        soldierEntity
+                        soldierEntity,
+                        hasFog
                 );
             }
         }
@@ -404,9 +415,62 @@ public class TheThrone extends GameApplication {
                 Tile gameTile = currentGame.getMap()[x][y];
                 RenderTile renderTile = this.renderTiles[x][y];
                 Position coords = getIsometricToCoords(x, y);
-                updateTreeRender(gameTile, renderTile, coords.x(), coords.y());
-                updateBuildingRender(gameTile, renderTile, coords.x(), coords.y());
-                updateSoldierRender(gameTile, renderTile, coords.x(), coords.y());
+
+                boolean currentlyHasFog = !player.getVision()[x][y];
+                boolean previouslyHadFog = renderTile.hasFog();
+
+                // If fog status changed, we need to update the tile rendering
+                if (currentlyHasFog != previouslyHadFog) {
+                    // Remove old tile render
+                    renderTile.getTileRender().removeFromWorld();
+
+                    Entity newTileEntity;
+                    if (currentlyHasFog) {
+                        // Show fog
+                        newTileEntity = entityBuilder(coords.x(), coords.y(), 0, "tiles/cloud_tile.png");
+                        // Remove all objects
+                        if (renderTile.getTreeRender() != null) {
+                            renderTile.getTreeRender().removeFromWorld();
+                            renderTile.setTreeRender(null);
+                        }
+                        if (renderTile.getBuildingRender() != null) {
+                            renderTile.getBuildingRender().removeFromWorld();
+                            renderTile.setBuildingRender(null);
+                        }
+                        if (renderTile.getSoldierEntity() != null) {
+                            renderTile.getSoldierEntity().removeFromWorld();
+                            renderTile.setSoldierEntity(null);
+                        }
+                    } else {
+                        // Remove fog, show actual tile
+                        newTileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(gameTile.getBiome(), gameTile.getHeight()));
+                        // Add back all objects that should be visible
+                        if (gameTile.hasTree()) {
+                            renderTile.setTreeRender(entityBuilder(coords.x(), coords.y(), 4, "features/tree.png"));
+                        }
+                        if (gameTile.getBuilding() != null) {
+                            renderTile.setBuildingRender(createBuildingEntity(gameTile, coords.x(), coords.y()));
+                        }
+                        if (gameTile.getSoldier() != null) {
+                            renderTile.setSoldierEntity(createSoldierEntity(gameTile, coords.x(), coords.y()));
+                        }
+                    }
+
+                    // Update the tile render in renderTiles array
+                    this.renderTiles[x][y] = new RenderTile(
+                            renderTile.getPosition(),
+                            newTileEntity,
+                            renderTile.getTreeRender(),
+                            renderTile.getBuildingRender(),
+                            renderTile.getSoldierEntity(),
+                            currentlyHasFog
+                    );
+                } else if (!currentlyHasFog) {
+                    // No fog change, update normally if tile is visible
+                    updateTreeRender(gameTile, renderTile, coords.x(), coords.y());
+                    updateBuildingRender(gameTile, renderTile, coords.x(), coords.y());
+                    updateSoldierRender(gameTile, renderTile, coords.x(), coords.y());
+                }
             }
         }
     }
@@ -507,7 +571,7 @@ public class TheThrone extends GameApplication {
         this.highlightedTile = new RenderTile(
                 new Position(x, y),
                 entityBuilder(isoCoords.x(), isoCoords.y(), 1, "tiles/selected_tile.png"),
-                null, null, null
+                null, null, null, false
         );
         this.updateTileMenu();
     }
