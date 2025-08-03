@@ -266,8 +266,6 @@ public class GamesMenuSubScene extends SubScene {
     private void handleJoinGame(Game game) {
         if (!game.userHasPlayer(user)) {
             ((TheThrone) FXGL.getApp()).showCreatePlayerMenu(this.user, game);
-        } else {
-            System.out.println("Join game: " + game.getName());
         }
     }
 

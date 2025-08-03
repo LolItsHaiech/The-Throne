@@ -157,6 +157,7 @@ public abstract class Soldier implements Serializable {
 
         this.position = newPos;
         this.hasMoved = true;
+        this.player.expandVision(newPos, this.getSpeed() + 1);
         return true;
     }
 

@@ -56,10 +56,10 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
         player.getCastles().addFirst(this);
         int r = this.getBorderRadius();
 
-        int minX = Math.max(this.position.x()-r, 0 );
-        int maxX = Math.min(this.position.x()+r, player.getGame().getMapWidth());
-        int minY = Math.max(this.position.y()-r, 0);
-        int maxY = Math.min(this.position.y()-r, player.getGame().getMapHeight());
+        int minX = Math.max(this.position.x() - r, 0);
+        int maxX = Math.min(this.position.x() + r, player.getGame().getMapWidth() - 1);
+        int minY = Math.max(this.position.y() - r, 0);
+        int maxY = Math.min(this.position.y() - r, player.getGame().getMapHeight() - 1);
 
         for (int x = minX; x < maxX; x++) {
             for (int y = minY; y < maxY; y++) {
@@ -73,7 +73,7 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
 
     @Override
     public MaterialCost getBuildingPrice() {
-        return new MaterialCost(50,10,10,0,5);
+        return new MaterialCost(50, 10, 10, 0, 5);
     }
 
     @Override
