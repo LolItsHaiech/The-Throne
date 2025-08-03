@@ -284,6 +284,10 @@ public abstract class Game implements DBSerializable {
         }
         if (this.isGameStarted()) {
             this.generateMap();
+            for (Player p : this.players) {
+                Castle castle = p.getCastles().get(0);
+                p.expandVision(castle.getPosition(), castle.getBorderRadius()+1);
+            }
         }
         this.save();
     }

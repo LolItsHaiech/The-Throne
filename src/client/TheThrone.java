@@ -121,11 +121,11 @@ public class TheThrone extends GameApplication {
 
             Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
             if (this.isSoldierMoving) {
-                Soldier soldier = this.currentGame.getTile(this.highlightedTile.position()).getSoldier();
+                Soldier soldier = this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier();
                 if (soldier != null && !soldier.hasMoved()) {
                     this.isSoldierMoving = false;
 
-                    if (this.currentGame.getTile(this.highlightedTile.position()).getSoldier().moveTo(pos)) {
+                    if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().moveTo(pos)) {
                         for (RenderSoldier renderedSoldier : this.renderedSoldiers) {
                             renderedSoldier.setPosition(pos);
                             Position newPos = getIsometricToCoords(pos.x(), pos.y());
@@ -383,9 +383,6 @@ public class TheThrone extends GameApplication {
                 if (currentGame.getMap()[x][y].hasTree()) {
                     entityBuilder(coords.x(), coords.y(), 4, "features/tree.png");
                 }
-                if (tile.getBuilding() instanceof Castle) {
-                    System.out.println("yay");
-                }
                 renderBuilding(tile, x, y);
                 renderSoldier(tile, x, y);
             }
@@ -429,7 +426,7 @@ public class TheThrone extends GameApplication {
 
     private void renderHighlightedTile(int x, int y) {
         if (this.highlightedTile != null) {
-            this.highlightedTile.entity().removeFromWorld();
+            this.highlightedTile.getTileRender().removeFromWorld();
         }
         if (x < 0 || x >= currentGame.getMapWidth() || y < 0 || y >= currentGame.getMapHeight()) {
             this.highlightedTile = null;
@@ -439,9 +436,9 @@ public class TheThrone extends GameApplication {
 
         Position isoCoords = getIsometricToCoords(x, y);
         this.highlightedTile = new RenderTile(
-                currentGame.getMap()[x][y],
                 new Position(x, y),
-                entityBuilder(isoCoords.x(), isoCoords.y(), 1, "tiles/selected_tile.png")
+                entityBuilder(isoCoords.x(), isoCoords.y(), 1, "tiles/selected_tile.png"),
+                null, null, null
         );
         this.updateTileMenu();
     }
@@ -505,7 +502,6 @@ public class TheThrone extends GameApplication {
     }
 
     private void updateTileMenu() {
-        System.out.println("TheThrone.updateTileMenu");
         if (!this.isYourTurn)
             return;
 
@@ -513,10 +509,9 @@ public class TheThrone extends GameApplication {
         if (this.highlightedTile == null) {
             return;
         }
-        Tile tile = this.highlightedTile.tile();
+        Tile tile = this.currentGame.getMap()[this.highlightedTile.getPosition().x()][this.highlightedTile.getPosition().y()];
 
         if (tile.getBuilding() != null) {
-            System.out.println("TheThrone.updateTileMenu1");
             Button buildingInfo = new Button("View Building");
             buildingInfo.setMinWidth(200);
 
@@ -524,15 +519,14 @@ public class TheThrone extends GameApplication {
             this.tileMenu.getChildren().add(buildingInfo);
         } else {
             System.out.println("TheThrone.updateTileMenu2");
-            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.position())) {
-                System.out.println("haha");
+            for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.getPosition())) {
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
                 btn.setMinWidth(200);
                 btn.setOnAction(e -> {
-                    this.currentGame.getMap()[this.highlightedTile.position().x()][this.highlightedTile.position().y()].setBuilding(
-                            factory.create(this.player, this.highlightedTile.position())
+                    this.currentGame.getMap()[this.highlightedTile.getPosition().x()][this.highlightedTile.getPosition().y()].setBuilding(
+                            factory.create(this.player, this.highlightedTile.getPosition())
                     );
-                    renderBuilding(tile, this.highlightedTile.position().x(), this.highlightedTile.position().y());
+                    renderBuilding(tile, this.highlightedTile.getPosition().x(), this.highlightedTile.getPosition().y());
 
                     updateTileMenu();
                 });

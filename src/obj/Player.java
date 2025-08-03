@@ -186,9 +186,9 @@ public class Player implements Serializable {
         for (Castle castle : this.castles) {
             int r = castle.getBorderRadius();
             int minX = Math.max(castle.getPosition().x() - r, 0);
-            int maxX = Math.min(castle.getPosition().x() + r, this.getGame().getMapWidth());
+            int maxX = Math.min(castle.getPosition().x() + r, this.getGame().getMapWidth() - 1);
             int minY = Math.max(castle.getPosition().y() - r, 0);
-            int maxY = Math.min(castle.getPosition().y() + r, this.getGame().getMapHeight());
+            int maxY = Math.min(castle.getPosition().y() + r, this.getGame().getMapHeight() - 1);
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     res.addFirst(new Position(x, y));
@@ -202,4 +202,15 @@ public class Player implements Serializable {
         return vision;
     }
 
+    public void expandVision(Position spot, int radius) {
+        int minX = Math.max(0, spot.x() - radius);
+        int maxX = Math.min(this.getGame().getMapWidth() - 1, spot.x() + radius);
+        int minY = Math.max(0, spot.y() - radius);
+        int maxY = Math.min(this.getGame().getMapHeight() - 1, spot.y() + radius);
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                this.vision[x][y] = true;
+            }
+        }
+    }
 }
