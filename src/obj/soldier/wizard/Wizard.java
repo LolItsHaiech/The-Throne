@@ -77,5 +77,6 @@ public abstract class Wizard extends Soldier {
             this.hadEffect=true;
             return true;
         }
+        return false;
     }
 }
