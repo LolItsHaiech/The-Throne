@@ -28,6 +28,9 @@ public enum Weapon implements Serializable {
     harpe(32, 0, 1, true),
     ;
 
+    private static int count = 0;
+    public final int ID;
+
     private final int damage;
     private final int speed;
     private final int range;
@@ -44,6 +47,7 @@ public enum Weapon implements Serializable {
         this.price = price;
         this.unluckPrice = unluckPrice;
         this.mystical = mystical;
+        this.ID = this.getID();
     }
 
     Weapon(int damage, int speed, int range, Weapon requiredWeapon, MaterialCost price, MaterialCost unluckPrice) {
@@ -66,6 +70,10 @@ public enum Weapon implements Serializable {
 
     public int getRange() {
         return range;
+    }
+
+    private int getID() {
+        return count++;
     }
 
     public Weapon getRequiredWeapon() {
