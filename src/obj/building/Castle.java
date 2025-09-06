@@ -35,6 +35,7 @@ public class Castle extends TrainerBuilding implements CollectorBuilding {
 
     public void capture(Player player) {
         this.owner.getCastles().remove(this); // todo
+        this.owner = player;
         player.getCastles().addFirst(this);
         int r = this.getBorderRadius();
 

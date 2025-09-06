@@ -858,6 +858,7 @@ public class TheThrone extends GameApplication {
             }
         }
         if (tile.getSoldier() != null &&
+                tile.getSoldier().getPlayer() == this.player &&
                 !tile.getSoldier().hasMoved() &&
                 tile.getBuilding() != null &&
                 tile.getBuilding() instanceof Castle castle &&
@@ -876,7 +877,7 @@ public class TheThrone extends GameApplication {
         if (tile.getBuilding() instanceof WizardTower wizardTower)
             System.out.println(wizardTower.getOwner());
 
-        if (!player.getHavingTower() && tile.getBuilding() != null && tile.getSoldier() != null
+        if (!player.getHavingTower() && tile.getBuilding() != null && tile.getSoldier() != null && tile.getSoldier().getPlayer() == this.player
                 && !tile.getSoldier().hasMoved() &&
                 tile.getBuilding() instanceof WizardTower wizardTower && wizardTower.getOwner() == null) {
             Button captureTower = new Button("Capture Tower");
