@@ -26,6 +26,14 @@ public class Deal {
         this.inProgress = true;
     }
 
+    public LinkedList<Transaction> getOffers() {
+        return offers;
+    }
+
+    public LinkedList<Transaction> getDemands() {
+        return demands;
+    }
+
     public void offer(Transaction offer, Player dealer1) {
         try {
             if (!this.inProgress)

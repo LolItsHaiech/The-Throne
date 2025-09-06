@@ -1,10 +1,7 @@
 package client;
 
 import client.render.RenderTile;
-import client.scenes.CreateGameSubScene;
-import client.scenes.CreatePlayerSubScene;
-import client.scenes.GamesMenuSubScene;
-import client.scenes.LoginSubScene;
+import client.scenes.*;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.app.scene.Viewport;
@@ -29,6 +26,7 @@ import obj.building.mystical.MysticalContainer;
 import obj.game.Game;
 import obj.map.Tile;
 import obj.soldier.Soldier;
+import transactions.Deal;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
@@ -80,6 +78,7 @@ public class TheThrone extends GameApplication {
     private boolean isYourTurn;
 
     private VBox tileMenu;
+    private VBox DealMenu;
     private Texture skipButton;
 
     @Override
@@ -311,6 +310,38 @@ public class TheThrone extends GameApplication {
             this.skipButton.setX(SCREEN_WIDTH - 230);
             this.skipButton.setY(SCREEN_HEIGHT - 160);
             addUINode(this.skipButton);
+        }
+
+        DealMenu = new VBox(10);
+        DealMenu.setTranslateX(300);
+        DealMenu.setTranslateY(SCREEN_HEIGHT - 100);
+        DealMenu.setAlignment(Pos.BOTTOM_CENTER);
+        DealMenu.setFillWidth(true);
+        DealMenu.setMinWidth(200);
+        getGameScene().addUINode(DealMenu);
+        Button btnDeal = new Button("Deal");
+        btnDeal.setStyle(
+                "-fx-background-color: #004d84; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 12; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 5;");
+        btnDeal.setOnAction(event -> {
+            FXGL.getSceneService().popSubScene();
+            FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new TransactionSubScene(player, currentGame)), Duration.ZERO);
+        });
+        for (Deal deal: player.getProposedDeals()) {
+            Button btn = new Button("Offers From " + deal.getDealer1().getPlayerName());
+            btn.setStyle(
+                    "-fx-background-color: #16621c; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-font-size: 12; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-background-radius: 5;");
+            btn.setOnAction(event -> {
+                FXGL.getSceneService().popSubScene();
+                FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new DealRoomSubScene(deal, currentGame, player)), Duration.ZERO);
+            });
         }
 
         Button exitButton = new Button("Exit to Menu");
