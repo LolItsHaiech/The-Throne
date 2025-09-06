@@ -23,12 +23,14 @@ public class Player implements Serializable {
     private final LinkedList<Castle> castles;
     private final LinkedList<Soldier> soldiers;
     private final Map<Weapon, Integer> weapons;
+    private boolean havingTower;
 
     private int woodCount;
     private int stoneCount;
     private int ironCount;
     private int foodCount;
     private int wealth;
+    private final boolean[] weaponUnlocks;
 
     private final boolean[] weaponUnlocks;
     private final boolean[][] vision;
@@ -48,6 +50,7 @@ public class Player implements Serializable {
         this.soldiers = new LinkedList<>();
         this.weapons = new Map<>();
         this.weaponUnlocks = new boolean[Weapon.values().length];
+        this.havingTower = false;
     }
 
     public Tribe getTribe() {
@@ -76,6 +79,12 @@ public class Player implements Serializable {
 
     public int getWealth() {
         return wealth;
+    }
+
+    public boolean getHavingTower() { return havingTower; }
+
+    public void setHavingTower(boolean havingTower) {
+        this.havingTower = havingTower;
     }
 
     public boolean spendWood(int amount) {
@@ -245,3 +254,4 @@ public class Player implements Serializable {
         this.weaponUnlocks[i] = true;
     }
 }
+

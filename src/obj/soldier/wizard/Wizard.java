@@ -8,8 +8,20 @@ import obj.soldier.wizard.functional.Magic;
 import util.Position;
 
 public abstract class Wizard extends Soldier {
+    private boolean hadEffect;
+
+
     public Wizard(Weapon weapon, Player player, Position position) {
         super(weapon, player, position);
+        this.hadEffect = false;
+    }
+
+
+    public boolean getHadEffect() {
+        return hadEffect;
+    }
+    public void setHadEffect(boolean hadEffect) {
+        this.hadEffect = hadEffect;
     }
 
     @Override
@@ -43,17 +55,28 @@ public abstract class Wizard extends Soldier {
 
     public abstract Magic getEffect();
 
-    public void castEffect(Position target) throws IllegalMoveException {
-        if (Math.abs(this.getPos().x() - target.x()) > this.getRange() || Math.abs(this.getPos().y() - target.y()) > this.getRange()) {
-            throw new IllegalMoveException("target is out of reach");
-        }
-        for (int i = target.x()-1; i < target.x()+1; i++) {
-            for (int j = target.y()-1; j < target.y()+1; j++) {
-                Soldier soldier = this.getPlayer().getGame().getMap()[i][j].getSoldier();
-                if(soldier!=null) {
-                    soldier.setEffect(this.getEffect());
+    @Override
+    public void onTurnStart() {
+        super.onTurnStart();
+        this.hadEffect = false;
+    }
+
+    public boolean castEffect(Position target){
+        if (!this.hadEffect){
+            if (Math.abs(this.getPos().x() - target.x()) > this.getRange() || Math.abs(this.getPos().y() - target.y()) > this.getRange()) {
+                return false;
+            }
+            for (int i = target.x() - 1; i < target.x() + 1; i++) {
+                for (int j = target.y() - 1; j < target.y() + 1; j++) {
+                    Soldier soldier = this.getPlayer().getGame().getMap()[i][j].getSoldier();
+                    if (soldier != null) {
+                        soldier.setEffect(this.getEffect());
+                    }
                 }
             }
+            this.hadEffect=true;
+            return true;
         }
+        return false;
     }
 }

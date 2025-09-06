@@ -35,6 +35,7 @@ import obj.building.mystical.MysticalContainer;
 import obj.game.Game;
 import obj.map.Tile;
 import obj.soldier.Soldier;
+import obj.soldier.wizard.Wizard;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
@@ -83,6 +84,8 @@ public class TheThrone extends GameApplication {
     // New rendering system
     private RenderTile[][] renderTiles;
     private boolean isSoldierMoving;
+    private boolean isSoldierAttacking;
+    private boolean isWizardCasting;
     private boolean isYourTurn;
 
     private VBox tileMenu;
@@ -129,6 +132,7 @@ public class TheThrone extends GameApplication {
             Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
             if (this.isSoldierMoving) {
                 Soldier soldier = this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier();
+
                 if (soldier != null && !soldier.hasMoved()) {
                     this.isSoldierMoving = false;
 
@@ -136,9 +140,36 @@ public class TheThrone extends GameApplication {
                         updateMap();
                     }
                 }
-            } else {
+            } else if (this.isSoldierAttacking) {
+                Soldier soldier = this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier();
+                if (soldier != null && !soldier.hasAttacked()) {
+                    this.isSoldierAttacking = false;
+
+                    if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().attack(pos)) {
+                        // Update the map instead of manually moving soldiers
+                        updateMap();
+                    }
+                }
+            }
+            else if (this.isWizardCasting){
+                Tile target = this.currentGame.getTile(this.highlightedTile.getPosition());
+                Soldier soldier = this.currentGame.getMap()[this.highlightedTile.getPosition().x()][this.highlightedTile.getPosition().y()].getSoldier();
+                if (soldier instanceof Wizard wizard && !wizard.getHadEffect()) {
+                    this.isWizardCasting = false;
+
+                    if (wizard.castEffect(this.highlightedTile.getPosition())) {
+                        // Update the map instead of manually moving soldiers
+                        updateMap();
+                    }
+                }
+
+            }
+            else {
                 renderHighlightedTile(pos.x(), pos.y());
             }
+
+
+
         });
 
         FXGL.onKeyUp(KeyCode.F11, () -> {
@@ -314,6 +345,7 @@ public class TheThrone extends GameApplication {
 
                 this.skipButton.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
             });
+
             this.skipButton.setX(SCREEN_WIDTH - 230);
             this.skipButton.setY(SCREEN_HEIGHT - 160);
 
@@ -821,6 +853,30 @@ public class TheThrone extends GameApplication {
                 this.tileMenu.getChildren().add(btn);
             }
         }
+        if (tile.getSoldier() != null &&
+                !tile.getSoldier().hasMoved() &&
+                tile.getBuilding() != null &&
+                tile.getBuilding() instanceof Castle castle &&
+                castle.getOwner() != tile.getSoldier().getPlayer()) {
+            Button captureCastle = new Button("Capture Castle");
+            captureCastle.setMinWidth(200);
+            captureCastle.setOnAction(e -> {
+                castle.capture(this.player);
+                updateMap();
+            });
+
+            this.tileMenu.getChildren().add(captureCastle);
+        }
+        if (!player.getHavingTower() && tile.getBuilding() != null
+                && !tile.getSoldier().hasMoved() &&
+                tile.getBuilding() instanceof WizardTower wizardTower && wizardTower.getOwner()==null) {
+            Button captureTower = new Button("Capture Tower");
+            captureTower.setMinWidth(200);
+            captureTower.setOnAction(e -> {
+                wizardTower.capture(this.player);
+                updateMap();
+            });
+        }
 
         if (tile.getSoldier() != null && !tile.getSoldier().hasAttacked()) {
             Button moveSoldier = new Button("Move Soldier");
@@ -828,6 +884,23 @@ public class TheThrone extends GameApplication {
             moveSoldier.setOnAction(e -> this.isSoldierMoving = true);
 
             this.tileMenu.getChildren().add(moveSoldier);
+        }
+
+        if (tile.getSoldier() != null && !tile.getSoldier().hasAttacked()) {
+            Button attackSoldier = new Button("Attack Soldier");
+            attackSoldier.setMinWidth(200);
+            attackSoldier.setOnAction(e -> this.isSoldierAttacking = true);
+
+            this.tileMenu.getChildren().add(attackSoldier);
+        }
+
+        if (tile.getSoldier() != null && tile.getSoldier() instanceof Wizard wizard
+                && !tile.getSoldier().hasMoved() && !wizard.getHadEffect()) {
+            Button wizardEffect = new Button("Wizard Effect");
+            wizardEffect.setMinWidth(200);
+            wizardEffect.setOnAction(e -> this.isWizardCasting=true);
+
+            this.tileMenu.getChildren().add(wizardEffect);
         }
     }
 
