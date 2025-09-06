@@ -1,45 +1,33 @@
 package obj.building;
 
 import obj.Player;
+import obj.Weapon;
 import obj.building.interfaces.TrainerBuilding;
+import obj.soldier.Rider;
+import obj.soldier.Soldier;
 import obj.soldier.Warrior;
+import util.LinkedList;
 import util.MaterialCost;
 import util.Position;
+import util.map.Map;
 
-public class Barrack extends Building implements TrainerBuilding {
-    private boolean operation;
-    private int operationTime;
+public class Barrack extends TrainerBuilding {
 
     public Barrack(Player owner, Position position) {
         super(owner, position);
-        this.operation = false;
-        this.operationTime = 0;
     }
 
     @Override
-    public void trainNewUnit() {
-        if (!operation) {
-            this.operation = true;
-            this.operationTime = 2;
-        }
+    public Map<String, SoldierFactory> getAllowedSoldiers() {
+        Map<String, SoldierFactory> allowedSoldiers = new Map<>();
+        allowedSoldiers.addFirst("Warrior", Warrior::new);
+        allowedSoldiers.addFirst("Rider", Rider::new);
+        return allowedSoldiers;
     }
 
-    public void trainNewSoldier() {
-        this.trainNewUnit();
-    }
-
-    @Override
-    public void train() {
-        if (this.operationTime > 0)
-            this.operationTime--;
-        if (this.operationTime == 0 && this.operation) {
-            this.owner.getSoldiers().addFirst(new Warrior(null, this.owner, this.position));// todo -> set weapon
-            this.operation = false;
-        }
-    }
 
     @Override
     public MaterialCost getBuildingPrice() {
-        return new MaterialCost(10, 5,5,5, 0);
+        return new MaterialCost(10, 5, 5, 5, 0);
     }
 }

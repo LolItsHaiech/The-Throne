@@ -15,15 +15,21 @@ import com.almasb.fxgl.scene.CSS;
 import com.almasb.fxgl.texture.Texture;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import obj.Player;
+import obj.Weapon;
 import obj.auth.User;
 import obj.building.*;
+import obj.building.interfaces.TrainerBuilding;
 import obj.building.interfaces.functional.BuildingFactory;
 import obj.building.mystical.MysticalContainer;
 import obj.game.Game;
@@ -37,6 +43,7 @@ import javafx.geometry.Pos;
 import java.util.*;
 
 import javafx.util.Duration;
+import util.map.MapEntry;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
@@ -74,12 +81,12 @@ public class TheThrone extends GameApplication {
     private Star[] stars;
 
     // New rendering system
-    private RenderTile[][] renderTiles; // Complete array of all rendered tiles
-
+    private RenderTile[][] renderTiles;
     private boolean isSoldierMoving;
     private boolean isYourTurn;
 
     private VBox tileMenu;
+    private VBox weaponsMenu;
     private Texture skipButton;
 
     @Override
@@ -126,7 +133,6 @@ public class TheThrone extends GameApplication {
                     this.isSoldierMoving = false;
 
                     if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().moveTo(pos)) {
-                        // Update the map instead of manually moving soldiers
                         updateMap();
                     }
                 }
@@ -310,6 +316,21 @@ public class TheThrone extends GameApplication {
             });
             this.skipButton.setX(SCREEN_WIDTH - 230);
             this.skipButton.setY(SCREEN_HEIGHT - 160);
+
+
+            Button toggleWeaponsMenuButton = new Button("weapons menu");
+            toggleWeaponsMenuButton.setTranslateX(SCREEN_WIDTH - 230);
+            toggleWeaponsMenuButton.setTranslateY(SCREEN_HEIGHT - 240);
+            toggleWeaponsMenuButton.setOnMouseClicked(mouseEvent -> {
+                if (this.weaponsMenu != null) {
+                    removeUINode(this.weaponsMenu);
+                    this.weaponsMenu = null;
+                } else {
+                    updateWeaponMenu();
+                }
+            });
+
+            addUINode(toggleWeaponsMenuButton);
             addUINode(this.skipButton);
         }
 
@@ -325,6 +346,121 @@ public class TheThrone extends GameApplication {
         exitButton.setTranslateY(10);
         exitButton.setOnAction(e -> exitGame());
         getGameScene().addUINode(exitButton);
+    }
+
+    public void updateWeaponMenu() {
+        this.weaponsMenu = new VBox(10);
+        this.weaponsMenu.setAlignment(Pos.CENTER);
+        this.weaponsMenu.setMinWidth(400);
+        this.weaponsMenu.setMinHeight(400);
+        this.weaponsMenu.setStyle("-fx-background-color: #f44336; ");
+        VBox content = new VBox(10);
+        Weapon[] values = Weapon.values();
+        for (int i = 0; i < values.length; i++) {
+            Weapon weapon = values[i];
+            if (!weapon.isMystical() && (this.player.getWeaponUnlocks()[i] || weapon.getRequiredWeapon() == null || this.player.getWeaponUnlocks()[weapon.getRequiredWeapon().ID])) {
+                HBox hbox = new HBox();
+
+                Label name = new Label(weapon.name());
+                name.setMinWidth(200);
+
+                hbox.getChildren().add(name);
+                if (this.player.getWeaponUnlocks()[i]) {
+                    Button buyBtn = new Button("buy");
+                    buyBtn.setOnMouseClicked(event -> {
+                        if (this.player.spend(weapon.getPrice())) {
+                            this.player.addWeapon(weapon);
+                        }
+                    });
+                    buyBtn.minWidth(200);
+
+                    Integer count = this.player.getWeapons().get(weapon);
+                    if (count == null) {
+                        count = 0;
+                    }
+
+                    Label c = new Label(String.valueOf(count));
+                    c.minWidth(200);
+                    hbox.getChildren().add(c);
+
+                    Label w = new Label("  Wealth " + weapon.getPrice().wealth());
+                    w.minWidth(200);
+                    hbox.getChildren().add(w);
+
+                    Label wo = new Label("  Wood " + weapon.getPrice().wood());
+                    w.minWidth(200);
+                    hbox.getChildren().add(wo);
+
+                    Label f = new Label("  Food " + weapon.getPrice().food());
+                    f.minWidth(200);
+                    hbox.getChildren().add(f);
+
+                    Label s = new Label("  Stone " + weapon.getPrice().stone());
+                    s.minWidth(200);
+                    hbox.getChildren().add(s);
+
+                    Label ir = new Label("  Iron " + weapon.getPrice().iron());
+                    ir.minWidth(200);
+                    hbox.getChildren().add(ir);
+
+                    hbox.getChildren().add(buyBtn);
+                } else {
+                    Button buyBtn = new Button("unlock");
+                    int finalI = i;
+                    buyBtn.setOnMouseClicked(event -> {
+                        if (this.player.spend(weapon.getUnluckPrice())) {
+                            this.player.unlockWeapon(finalI);
+                            removeUINode(this.weaponsMenu);
+                            updateWeaponMenu();
+                        }
+                    });
+                    buyBtn.minWidth(200);
+
+
+                    Integer count = this.player.getWeapons().get(weapon);
+                    if (count == null) {
+                        count = 0;
+                    }
+
+                    Label c = new Label(String.valueOf(count));
+                    c.minWidth(200);
+                    hbox.getChildren().add(c);
+
+                    Label w = new Label("  Wealth " + weapon.getUnluckPrice().wealth());
+                    w.minWidth(200);
+                    hbox.getChildren().add(w);
+
+                    Label wo = new Label("  Wood " + weapon.getUnluckPrice().wood());
+                    w.minWidth(200);
+                    hbox.getChildren().add(wo);
+
+                    Label f = new Label("  Food " + weapon.getUnluckPrice().food());
+                    f.minWidth(200);
+                    hbox.getChildren().add(f);
+
+                    Label s = new Label("  Stone " + weapon.getUnluckPrice().stone());
+                    s.minWidth(200);
+                    hbox.getChildren().add(s);
+
+                    Label ir = new Label("  Iron " + weapon.getUnluckPrice().iron());
+                    ir.minWidth(200);
+                    hbox.getChildren().add(ir);
+
+                    hbox.getChildren().add(buyBtn);
+                }
+                content.getChildren().add(hbox);
+            }
+        }
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+        scrollPane.setPrefHeight(300);
+        scrollPane.setMaxHeight(300);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        this.weaponsMenu.getChildren().add(scrollPane);
+        addUINode(this.weaponsMenu);
+
     }
 
     private void renderGameWorld() {
@@ -383,10 +519,8 @@ public class TheThrone extends GameApplication {
                 Entity soldierEntity = null;
 
                 if (hasFog) {
-                    // Render fog tile instead of actual tile
                     tileEntity = entityBuilder(coords.x(), coords.y(), 0, "tiles/cloud_tile.png");
                 } else {
-                    // Render normal tile and all objects on it
                     tileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
 
                     if (tile.hasTree()) {
@@ -650,6 +784,29 @@ public class TheThrone extends GameApplication {
 
             buildingInfo.setOnAction(e -> System.out.println("Building: " + tile.getBuilding().getClass().getSimpleName()));
             this.tileMenu.getChildren().add(buildingInfo);
+
+            if (tile.getBuilding().getOwner() == this.player && tile.getBuilding() instanceof TrainerBuilding trainerBuilding && tile.getSoldier()==null) {
+                System.out.println(1);
+                for (int i = 0; i < trainerBuilding.getAllowedSoldiers().size(); i++) {
+                    System.out.println(2);
+                    MapEntry<String, TrainerBuilding.SoldierFactory> mapEntry = trainerBuilding.getAllowedSoldiers().get(i);
+                    for (MapEntry<Weapon, Integer> mapEntry1 : this.player.getWeapons()) {
+                        System.out.println(3);
+                        if (mapEntry1.getValue() != 0) {
+                            Button trainBtn = new Button("Train " + mapEntry.getKey() + " with " + mapEntry1.getKey().name());
+                            trainBtn.setMinWidth(200);
+                            int finalI = i;
+                            trainBtn.setOnAction(e -> {
+                                trainerBuilding.train(finalI, mapEntry1.getKey());
+                                updateTileMenu();
+                                updateMap();
+                            });
+                            this.tileMenu.getChildren().add(trainBtn);
+                        }
+                    }
+                }
+            }
+
         } else {
             for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.getPosition())) {
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
@@ -665,7 +822,7 @@ public class TheThrone extends GameApplication {
             }
         }
 
-        if (tile.getSoldier() != null && !tile.getSoldier().hasMoved()) {
+        if (tile.getSoldier() != null && !tile.getSoldier().hasAttacked()) {
             Button moveSoldier = new Button("Move Soldier");
             moveSoldier.setMinWidth(200);
             moveSoldier.setOnAction(e -> this.isSoldierMoving = true);

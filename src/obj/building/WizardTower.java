@@ -4,51 +4,23 @@ import obj.Player;
 import obj.building.interfaces.TrainerBuilding;
 import obj.soldier.wizard.*;
 import obj.soldier.wizard.functional.Magic;
+import util.LinkedList;
 import util.MaterialCost;
 import util.Position;
+import util.map.Map;
 
-public class WizardTower extends Building implements TrainerBuilding {
+public class WizardTower extends TrainerBuilding {
     private final Magic magic;
-    private boolean operation;
-    private int operationTime;
 
     public WizardTower(Position position, Magic magic) {
         super(null, position);
         this.magic = magic;
-        this.operation = false;
-        this.operationTime = 0;
     }
 
-    @Override
-    public void trainNewUnit() {
-        if (!operation) {
-            this.operation = true;
-            this.operationTime = 10;
-        }
-    }
 
-    public void trainNewSoldier() {
-        this.trainNewUnit();
+    public void capture(Player player) {
+        this.owner = player;
     }
-
-    @Override
-    public void train() {
-        if (this.operationTime > 0)
-            this.operationTime--;
-        if (this.operationTime == 0 && this.operation) {
-            Wizard wizard = null;
-            switch (magic) {
-                case defenceBoost -> wizard = new DefenceWizard(null, this.owner, this.position);
-                case healthBoost -> wizard = new HealerWizard(null, this.owner, this.position);
-                case speedBoost -> wizard = new SpeedWizard(null, this.owner, this.position);
-                case damageBoost -> wizard = new StrengthWizard(null, this.owner, this.position);
-            }
-            this.owner.getSoldiers().addFirst(wizard);
-            this.operation = false;
-        }
-    }
-
-    public void capture(Player player) {this.owner = player;}
 
     public Magic getMagic() {
         return magic;
@@ -58,4 +30,17 @@ public class WizardTower extends Building implements TrainerBuilding {
     public MaterialCost getBuildingPrice() {
         return null;
     }
+
+    @Override
+    public Map<String, SoldierFactory> getAllowedSoldiers() {
+        Map<String, SoldierFactory> allowedSoldiers = new Map<>();
+        allowedSoldiers.addFirst("Wizard", ((weapon, player, position1) -> switch (magic) {
+            case defenceBoost -> new DefenceWizard(weapon, player, position1);
+            case damageBoost -> new StrengthWizard(weapon, player, position1);
+            case healthBoost -> new HealerWizard(weapon, player, position1);
+            case speedBoost -> new SpeedWizard(weapon, player, position1);
+        }));
+        return allowedSoldiers;
+    }
+
 }
