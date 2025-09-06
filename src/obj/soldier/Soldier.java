@@ -66,7 +66,7 @@ public abstract class Soldier implements Serializable {
     }
 
     public int getSpeed() {
-        return Math.max(1, this.getBaseSpeed() + this.player.getGame().getTile(this.position).getSpeedModifier() + this.weapon.getSpeed() + this.speedModifier);
+        return 100 + Math.max(1, this.getBaseSpeed() + this.player.getGame().getTile(this.position).getSpeedModifier() + this.weapon.getSpeed() + this.speedModifier);
     }
 
     public int getRange() {

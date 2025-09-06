@@ -31,8 +31,6 @@ public class Player implements Serializable {
     private int foodCount;
     private int wealth;
     private final boolean[] weaponUnlocks;
-
-    private final boolean[] weaponUnlocks;
     private final boolean[][] vision;
 
     public Player(User user, String name, Tribe tribe, Game game) {

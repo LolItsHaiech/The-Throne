@@ -20,10 +20,6 @@ public class WizardTower extends TrainerBuilding {
 
     public void capture(Player player) {
         this.owner = player;
-    }
-
-    public void capture(Player player) {
-        this.owner = player;
         player.setHavingTower(true);
     }
 
