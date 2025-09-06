@@ -4,6 +4,7 @@ import obj.auth.User;
 import obj.building.Castle;
 import obj.game.Game;
 import obj.soldier.Soldier;
+import transactions.Deal;
 import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
 
@@ -23,6 +24,7 @@ public class Player implements Serializable {
     private final LinkedList<Castle> castles;
     private final LinkedList<Soldier> soldiers;
     private final Map<Weapon, Integer> weapons;
+    private final LinkedList<Deal> proposedDeals;
     private boolean havingTower;
 
     private int woodCount;
@@ -47,6 +49,7 @@ public class Player implements Serializable {
         this.castles = new LinkedList<>();
         this.soldiers = new LinkedList<>();
         this.weapons = new Map<>();
+        this.proposedDeals = new LinkedList<>();
         this.weaponUnlocks = new boolean[Weapon.values().length];
         this.havingTower = false;
     }
@@ -162,6 +165,10 @@ public class Player implements Serializable {
         this.stoneCount += amount;
     }
 
+    public String getPlayerName() {
+        return name;
+    }
+
     public Game getGame() {
         return game;
     }
@@ -244,6 +251,9 @@ public class Player implements Serializable {
         }
     }
 
+    public LinkedList<Deal> getProposedDeals() {
+        return proposedDeals;
+    }
     public boolean[] getWeaponUnlocks() {
         return weaponUnlocks;
     }

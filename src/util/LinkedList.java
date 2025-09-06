@@ -67,6 +67,19 @@ public class LinkedList<T> implements Iterable<T>, Serializable {
         return false;
     }
 
+    public int search(T value) {
+        Node c = this.head;
+        int i = 0;
+        while (c != null) {
+            if (c.data.equals(value)) {
+                return i;
+            }
+            c = c.next;
+            i++;
+        }
+        return -1;
+    }
+
     public int size() {
         return this.size;
     }
