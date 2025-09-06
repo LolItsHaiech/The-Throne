@@ -8,6 +8,7 @@ import transactions.Deal;
 import transactions.exceptions.ItemDoesntExistException;
 import util.LinkedList;
 
+import util.MaterialCost;
 import util.Position;
 import util.map.Map;
 
@@ -24,13 +25,14 @@ public class Player implements Serializable {
     private final LinkedList<Soldier> soldiers;
     private final Map<Weapon, Integer> weapons;
     private final LinkedList<Deal> proposedDeals;
+    private boolean havingTower;
 
     private int woodCount;
     private int stoneCount;
     private int ironCount;
     private int foodCount;
     private int wealth;
-
+    private final boolean[] weaponUnlocks;
     private final boolean[][] vision;
 
     public Player(User user, String name, Tribe tribe, Game game) {
@@ -48,6 +50,8 @@ public class Player implements Serializable {
         this.soldiers = new LinkedList<>();
         this.weapons = new Map<>();
         this.proposedDeals = new LinkedList<>();
+        this.weaponUnlocks = new boolean[Weapon.values().length];
+        this.havingTower = false;
     }
 
     public Tribe getTribe() {
@@ -76,6 +80,12 @@ public class Player implements Serializable {
 
     public int getWealth() {
         return wealth;
+    }
+
+    public boolean getHavingTower() { return havingTower; }
+
+    public void setHavingTower(boolean havingTower) {
+        this.havingTower = havingTower;
     }
 
     public boolean spendWood(int amount) {
@@ -116,6 +126,23 @@ public class Player implements Serializable {
         }
         this.stoneCount -= amount;
         return true;
+    }
+
+    public boolean spend(MaterialCost materialCost) {
+        if (this.stoneCount < materialCost.stone() ||
+                this.woodCount < materialCost.wood() ||
+                this.wealth < materialCost.wealth() ||
+                this.foodCount < materialCost.food() ||
+                this.ironCount < materialCost.iron()) {
+            return false;
+        }
+        this.stoneCount -= materialCost.stone();
+        this.woodCount -= materialCost.wood();
+        this.wealth -= materialCost.wealth();
+        this.foodCount -= materialCost.food();
+        this.ironCount -= materialCost.iron();
+        return true;
+
     }
 
     public void increaseWood(int amount) {
@@ -167,7 +194,10 @@ public class Player implements Serializable {
     }
 
     public void addWeapon(Weapon weapon, int count) {
-        int last = this.weapons.get(weapon); // if null -> 0
+        Integer last = this.weapons.get(weapon); // if null -> 0
+        if (last == null) {
+            last = 0;
+        }
         this.weapons.set(weapon, last + count);
     }
 
@@ -224,4 +254,12 @@ public class Player implements Serializable {
     public LinkedList<Deal> getProposedDeals() {
         return proposedDeals;
     }
+    public boolean[] getWeaponUnlocks() {
+        return weaponUnlocks;
+    }
+
+    public void unlockWeapon(int i) {
+        this.weaponUnlocks[i] = true;
+    }
 }
+

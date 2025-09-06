@@ -5,10 +5,14 @@ import obj.building.interfaces.CollectorBuilding;
 import obj.building.interfaces.TrainerBuilding;
 import obj.map.Tile;
 import obj.soldier.Commander;
+import obj.soldier.Rider;
+import obj.soldier.Warrior;
+import util.LinkedList;
 import util.MaterialCost;
 import util.Position;
+import util.map.Map;
 
-public class Castle extends Building implements CollectorBuilding, TrainerBuilding {
+public class Castle extends TrainerBuilding implements CollectorBuilding {
     private boolean operation;
     private int operationTime;
 
@@ -28,31 +32,10 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
         owner.increaseWealth(10);
     }
 
-    @Override
-    public void trainNewUnit() {
-        if (!operation) {
-            this.operation = true;
-            this.operationTime = 6;
-        }
-    }
-
-    public void trainNewCommander() {
-        this.trainNewUnit();
-    }
-
-    @Override
-    public void train() {
-        if (this.operationTime > 0)
-            this.operationTime--;
-        if (this.operationTime == 0 && this.operation) {
-            Commander unit = new Commander(null, this.owner, this.position);// todo -> set weapon
-            this.owner.getSoldiers().addFirst(unit);
-            this.operation = false;
-        }
-    }
 
     public void capture(Player player) {
         this.owner.getCastles().remove(this); // todo
+        this.owner = player;
         player.getCastles().addFirst(this);
         int r = this.getBorderRadius();
 
@@ -70,6 +53,14 @@ public class Castle extends Building implements CollectorBuilding, TrainerBuildi
             }
         }
     }
+
+    @Override
+    public Map<String, SoldierFactory> getAllowedSoldiers() {
+        Map<String, SoldierFactory> allowedSoldiers = new Map<>();
+        allowedSoldiers.addFirst("Commander", Commander::new);
+        return allowedSoldiers;
+    }
+
 
     @Override
     public MaterialCost getBuildingPrice() {

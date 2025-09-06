@@ -38,11 +38,11 @@ public abstract class Building implements Serializable {
         }
         Tile tile = player.getGame().getTile(position);
         LinkedList<BuildingFactory> allowedBuildings = new LinkedList<>();
-        if (tile.getBuilding()!=null) {
+        if (tile.getBuilding() != null) {
             return allowedBuildings;
         }
         if (tile.hasTree()) {
-            if (tile.getHeight()!= Tile.Height.mountain){
+            if (tile.getHeight() != Tile.Height.mountain) {
                 allowedBuildings.addFirst(LumberHut::new);
             }
         } else {
@@ -50,9 +50,11 @@ public abstract class Building implements Serializable {
             if (tile.getHeight() == Tile.Height.flat) {
                 allowedBuildings.addFirst(Castle::new);
                 allowedBuildings.addFirst(Farmland::new);
+            } else {
+                allowedBuildings.addFirst(WatchTower::new);
             }
         }
-        if (tile.getHeight()!= Tile.Height.flat) {
+        if (tile.getHeight() != Tile.Height.flat) {
             allowedBuildings.addFirst(Mine::new);
         }
         return allowedBuildings;

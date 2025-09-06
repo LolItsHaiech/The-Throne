@@ -99,6 +99,6 @@ public class Tile implements Serializable {
     }
 
     public int getDefenceModifier() {
-        return this.biome.defenceModifier + this.building.getDefenceModifier();
+        return this.biome.defenceModifier + (this.building==null?0: this.building.getDefenceModifier());
     }
 }

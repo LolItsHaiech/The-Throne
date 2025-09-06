@@ -45,6 +45,10 @@ public class Map<K, V> extends LinkedList<MapEntry<K, V>> implements Serializabl
         super.addLast(new MapEntry<>(key, value));
     }
 
+    public MapEntry<K, V> get(int i) {
+        return super.get(i);
+    }
+
     public boolean containsKey(K key) {
         for (MapEntry<K, V> entry : this) {
             if (Objects.equals(entry.getKey(), key)) {

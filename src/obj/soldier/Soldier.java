@@ -66,11 +66,12 @@ public abstract class Soldier implements Serializable {
     }
 
     public int getSpeed() {
-        return Math.max(1, this.getBaseSpeed() + this.player.getGame().getTile(this.position).getSpeedModifier() + this.weapon.getSpeed() + this.speedModifier);
+        return 100 + Math.max(1, this.getBaseSpeed() + this.player.getGame().getTile(this.position).getSpeedModifier() + this.weapon.getSpeed() + this.speedModifier);
     }
 
     public int getRange() {
-        return Math.max(1, this.getBaseRange() + this.player.getGame().getTile(this.position).getRangeModifier() + this.weapon.getRange());
+        // this.player.getGame().getTile(this.position).getRangeModifier() todo
+        return Math.max(1, this.getBaseRange() + this.weapon.getRange());
     }
 
     public int getDefence() {
@@ -157,12 +158,16 @@ public abstract class Soldier implements Serializable {
 
         this.position = newPos;
         this.hasMoved = true;
-        this.player.expandVision(newPos, this.getSpeed() + 1);
+        this.player.expandVision(newPos, Math.max(this.getSpeed(), this.getRange()) + 1);
         return true;
     }
 
     public boolean hasMoved() {
         return this.hasMoved;
+    }
+
+    public boolean hasAttacked() {
+        return this.hasAttacked;
     }
 
     public boolean attack(Position targetPos) {

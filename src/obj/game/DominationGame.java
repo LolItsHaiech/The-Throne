@@ -26,12 +26,18 @@ public class DominationGame extends Game{
             return false;
         }
         Player p = null;
+        System.out.println("fodkfkodf");
         for (Tile[] tiles : this.map) {
             for (Tile tile : tiles) {
                 if (tile.getBuilding() instanceof Castle castle) {
+                    System.out.println("yoooo");
+                    System.out.println(castle.getOwner().getUser().getUsername());
                     if (p == null) {
                         p = castle.getOwner();
                     } else if (p != castle.getOwner()) {
+                        System.out.println(p.getUser().getUsername());
+                        System.out.println(castle.getOwner().getUser().getUsername());
+                        System.out.println("yo");
                         return false;
                     }
                 }

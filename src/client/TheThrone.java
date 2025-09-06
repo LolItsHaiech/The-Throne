@@ -10,23 +10,31 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.scene.CSS;
 import com.almasb.fxgl.texture.Texture;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import obj.Player;
+import obj.Weapon;
 import obj.auth.User;
 import obj.building.*;
+import obj.building.interfaces.TrainerBuilding;
 import obj.building.interfaces.functional.BuildingFactory;
 import obj.building.mystical.MysticalContainer;
 import obj.game.Game;
 import obj.map.Tile;
 import obj.soldier.Soldier;
 import transactions.Deal;
+import obj.soldier.wizard.Wizard;
 import util.Position;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
@@ -35,6 +43,7 @@ import javafx.geometry.Pos;
 import java.util.*;
 
 import javafx.util.Duration;
+import util.map.MapEntry;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
@@ -72,13 +81,16 @@ public class TheThrone extends GameApplication {
     private Star[] stars;
 
     // New rendering system
-    private RenderTile[][] renderTiles; // Complete array of all rendered tiles
-
+    private RenderTile[][] renderTiles;
     private boolean isSoldierMoving;
+    private boolean isSoldierAttacking;
+    private boolean isWizardCasting;
     private boolean isYourTurn;
 
     private VBox tileMenu;
     private VBox DealMenu;
+    private VBox tileMenuContent;
+    private VBox weaponsMenu;
     private Texture skipButton;
 
     @Override
@@ -121,17 +133,41 @@ public class TheThrone extends GameApplication {
             Position pos = getCoordsToIsometric(input.getMouseXWorld(), input.getMouseYWorld());
             if (this.isSoldierMoving) {
                 Soldier soldier = this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier();
+
                 if (soldier != null && !soldier.hasMoved()) {
                     this.isSoldierMoving = false;
 
                     if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().moveTo(pos)) {
+                        updateMap();
+                    }
+                }
+            } else if (this.isSoldierAttacking) {
+                Soldier soldier = this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier();
+                if (soldier != null && !soldier.hasAttacked()) {
+                    this.isSoldierAttacking = false;
+
+                    if (this.currentGame.getTile(this.highlightedTile.getPosition()).getSoldier().attack(pos)) {
                         // Update the map instead of manually moving soldiers
                         updateMap();
                     }
                 }
+            } else if (this.isWizardCasting) {
+                Tile target = this.currentGame.getTile(this.highlightedTile.getPosition());
+                Soldier soldier = this.currentGame.getMap()[this.highlightedTile.getPosition().x()][this.highlightedTile.getPosition().y()].getSoldier();
+                if (soldier instanceof Wizard wizard && !wizard.getHadEffect()) {
+                    this.isWizardCasting = false;
+
+                    if (wizard.castEffect(this.highlightedTile.getPosition())) {
+                        // Update the map instead of manually moving soldiers
+                        updateMap();
+                    }
+                }
+
             } else {
                 renderHighlightedTile(pos.x(), pos.y());
             }
+
+
         });
 
         FXGL.onKeyUp(KeyCode.F11, () -> {
@@ -210,11 +246,9 @@ public class TheThrone extends GameApplication {
         FXGL.runOnce(() -> FXGL.getSceneService().pushSubScene(new CreatePlayerSubScene(user, game)), Duration.ZERO);
     }
 
-    // Game starting method - this is what gets called when "PLAY" is clicked
     public void startGame(Game game, User user) {
         this.currentGame = game;
 
-        // Find the player for this user in the game
         for (Player p : game.getPlayers()) {
             if (p != null && p.getUser().equals(user)) {
                 this.player = p;
@@ -229,16 +263,12 @@ public class TheThrone extends GameApplication {
 
         FXGL.getSceneService().popSubScene();
 
-        // Initialize game state
         initializeGameState();
 
-        // Set game as active
         this.gameActive = true;
 
-        // Initialize game UI
         initializeGameUI();
 
-        // Render the game
         renderGameWorld();
     }
 
@@ -248,16 +278,12 @@ public class TheThrone extends GameApplication {
         this.isYourTurn = this.currentGame.GetActivePlayer().equals(this.player);
         this.isSoldierMoving = false;
 
-        // Initialize the render tiles array
         this.renderTiles = new RenderTile[currentGame.getMapWidth()][currentGame.getMapHeight()];
 
-        // Clear any existing entities
         FXGL.getGameWorld().getEntities().forEach(Entity::removeFromWorld);
 
-        // Clear UI nodes
         getGameScene().getUINodes().clear();
 
-        // Setup viewport
         getGameScene().appendCSS(new CSS("assets/css/style.css"));
         Viewport viewport = getGameScene().getViewport();
         viewport.setX(-SCREEN_WIDTH >> 1);
@@ -307,8 +333,24 @@ public class TheThrone extends GameApplication {
 
                 this.skipButton.setImage(textureCache.computeIfAbsent("ui/end_turn_selected.png", file -> getAssetLoader().loadImage(file)));
             });
+
             this.skipButton.setX(SCREEN_WIDTH - 230);
             this.skipButton.setY(SCREEN_HEIGHT - 160);
+
+
+            Button toggleWeaponsMenuButton = new Button("weapons menu");
+            toggleWeaponsMenuButton.setTranslateX(SCREEN_WIDTH - 230);
+            toggleWeaponsMenuButton.setTranslateY(SCREEN_HEIGHT - 240);
+            toggleWeaponsMenuButton.setOnMouseClicked(mouseEvent -> {
+                if (this.weaponsMenu != null) {
+                    removeUINode(this.weaponsMenu);
+                    this.weaponsMenu = null;
+                } else {
+                    updateWeaponMenu();
+                }
+            });
+
+            addUINode(toggleWeaponsMenuButton);
             addUINode(this.skipButton);
         }
 
@@ -356,6 +398,123 @@ public class TheThrone extends GameApplication {
         exitButton.setTranslateY(10);
         exitButton.setOnAction(e -> exitGame());
         getGameScene().addUINode(exitButton);
+    }
+
+    public void updateWeaponMenu() {
+        this.weaponsMenu = new VBox(10);
+        this.weaponsMenu.setAlignment(Pos.CENTER);
+        this.weaponsMenu.setMinWidth(400);
+        this.weaponsMenu.setMinHeight(400);
+        this.weaponsMenu.setStyle("-fx-background-color: #f44336; ");
+        VBox content = new VBox(10);
+        Weapon[] values = Weapon.values();
+        for (int i = 0; i < values.length; i++) {
+            Weapon weapon = values[i];
+            if (!weapon.isMystical() && (this.player.getWeaponUnlocks()[i] || weapon.getRequiredWeapon() == null || this.player.getWeaponUnlocks()[weapon.getRequiredWeapon().ID])) {
+                HBox hbox = new HBox();
+
+                Label name = new Label(weapon.name());
+                name.setMinWidth(200);
+
+                hbox.getChildren().add(name);
+                if (this.player.getWeaponUnlocks()[i]) {
+                    Button buyBtn = new Button("buy");
+                    buyBtn.setOnMouseClicked(event -> {
+                        if (this.player.spend(weapon.getPrice())) {
+                            this.player.addWeapon(weapon);
+                            removeUINode(this.weaponsMenu);
+                            updateWeaponMenu();
+                        }
+                    });
+                    buyBtn.minWidth(200);
+
+                    Integer count = this.player.getWeapons().get(weapon);
+                    if (count == null) {
+                        count = 0;
+                    }
+
+                    Label c = new Label(String.valueOf(count));
+                    c.minWidth(200);
+                    hbox.getChildren().add(c);
+
+                    Label w = new Label("  Wealth " + weapon.getPrice().wealth());
+                    w.minWidth(200);
+                    hbox.getChildren().add(w);
+
+                    Label wo = new Label("  Wood " + weapon.getPrice().wood());
+                    w.minWidth(200);
+                    hbox.getChildren().add(wo);
+
+                    Label f = new Label("  Food " + weapon.getPrice().food());
+                    f.minWidth(200);
+                    hbox.getChildren().add(f);
+
+                    Label s = new Label("  Stone " + weapon.getPrice().stone());
+                    s.minWidth(200);
+                    hbox.getChildren().add(s);
+
+                    Label ir = new Label("  Iron " + weapon.getPrice().iron());
+                    ir.minWidth(200);
+                    hbox.getChildren().add(ir);
+
+                    hbox.getChildren().add(buyBtn);
+                } else {
+                    Button buyBtn = new Button("unlock");
+                    int finalI = i;
+                    buyBtn.setOnMouseClicked(event -> {
+                        if (this.player.spend(weapon.getUnluckPrice())) {
+                            this.player.unlockWeapon(finalI);
+                            removeUINode(this.weaponsMenu);
+                            updateWeaponMenu();
+                        }
+                    });
+                    buyBtn.minWidth(200);
+
+
+                    Integer count = this.player.getWeapons().get(weapon);
+                    if (count == null) {
+                        count = 0;
+                    }
+
+                    Label c = new Label(String.valueOf(count));
+                    c.minWidth(200);
+                    hbox.getChildren().add(c);
+
+                    Label w = new Label("  Wealth " + weapon.getUnluckPrice().wealth());
+                    w.minWidth(200);
+                    hbox.getChildren().add(w);
+
+                    Label wo = new Label("  Wood " + weapon.getUnluckPrice().wood());
+                    w.minWidth(200);
+                    hbox.getChildren().add(wo);
+
+                    Label f = new Label("  Food " + weapon.getUnluckPrice().food());
+                    f.minWidth(200);
+                    hbox.getChildren().add(f);
+
+                    Label s = new Label("  Stone " + weapon.getUnluckPrice().stone());
+                    s.minWidth(200);
+                    hbox.getChildren().add(s);
+
+                    Label ir = new Label("  Iron " + weapon.getUnluckPrice().iron());
+                    ir.minWidth(200);
+                    hbox.getChildren().add(ir);
+
+                    hbox.getChildren().add(buyBtn);
+                }
+                content.getChildren().add(hbox);
+            }
+        }
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+        scrollPane.setPrefHeight(300);
+        scrollPane.setMaxHeight(300);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        this.weaponsMenu.getChildren().add(scrollPane);
+        addUINode(this.weaponsMenu);
+
     }
 
     private void renderGameWorld() {
@@ -414,10 +573,8 @@ public class TheThrone extends GameApplication {
                 Entity soldierEntity = null;
 
                 if (hasFog) {
-                    // Render fog tile instead of actual tile
                     tileEntity = entityBuilder(coords.x(), coords.y(), 0, "tiles/cloud_tile.png");
                 } else {
-                    // Render normal tile and all objects on it
                     tileEntity = entityBuilder(coords.x(), coords.y(), 0, getTileTextureName(tile.getBiome(), tile.getHeight()));
 
                     if (tile.hasTree()) {
@@ -450,16 +607,12 @@ public class TheThrone extends GameApplication {
                 boolean currentlyHasFog = !player.getVision()[x][y];
                 boolean previouslyHadFog = renderTile.hasFog();
 
-                // If fog status changed, we need to update the tile rendering
                 if (currentlyHasFog != previouslyHadFog) {
-                    // Remove old tile render
                     renderTile.getTileRender().removeFromWorld();
 
                     Entity newTileEntity;
                     if (currentlyHasFog) {
-                        // Show fog
                         newTileEntity = entityBuilder(coords.x(), coords.y(), 0, "tiles/cloud_tile.png");
-                        // Remove all objects
                         if (renderTile.getTreeRender() != null) {
                             renderTile.getTreeRender().removeFromWorld();
                             renderTile.setTreeRender(null);
@@ -665,7 +818,24 @@ public class TheThrone extends GameApplication {
         return String.format("tiles/%s_%s.png", biomeName, heightName);
     }
 
-    private void updateTileMenu() {
+    private void initializeTileMenu() {
+        tileMenuContent = new VBox();
+        tileMenuContent.setSpacing(5);
+        tileMenuContent.setPadding(new Insets(10));
+
+        ScrollPane tileMenuScrollPane = new ScrollPane();
+        tileMenuScrollPane.setContent(tileMenuContent);
+
+        tileMenuScrollPane.setFitToWidth(true);
+        tileMenuScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        tileMenuScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        tileMenuScrollPane.setPrefSize(220, 400);
+        tileMenuScrollPane.setMaxHeight(400);
+
+    }
+
+    public void updateTileMenu() {
         if (!this.isYourTurn)
             return;
 
@@ -681,6 +851,29 @@ public class TheThrone extends GameApplication {
 
             buildingInfo.setOnAction(e -> System.out.println("Building: " + tile.getBuilding().getClass().getSimpleName()));
             this.tileMenu.getChildren().add(buildingInfo);
+
+            if (tile.getBuilding().getOwner() == this.player && tile.getBuilding() instanceof TrainerBuilding trainerBuilding && tile.getSoldier() == null) {
+                System.out.println(1);
+                for (int i = 0; i < trainerBuilding.getAllowedSoldiers().size(); i++) {
+                    System.out.println(2);
+                    MapEntry<String, TrainerBuilding.SoldierFactory> mapEntry = trainerBuilding.getAllowedSoldiers().get(i);
+                    for (MapEntry<Weapon, Integer> mapEntry1 : this.player.getWeapons()) {
+                        System.out.println(3);
+                        if (mapEntry1.getValue() != 0) {
+                            Button trainBtn = new Button("Train " + mapEntry.getKey() + " with " + mapEntry1.getKey().name());
+                            trainBtn.setMinWidth(200);
+                            int finalI = i;
+                            trainBtn.setOnAction(e -> {
+                                trainerBuilding.train(finalI, mapEntry1.getKey());
+                                updateTileMenu();
+                                updateMap();
+                            });
+                            this.tileMenu.getChildren().add(trainBtn);
+                        }
+                    }
+                }
+            }
+
         } else {
             for (BuildingFactory factory : Building.getAllowedBuildingsToBuild(player, this.highlightedTile.getPosition())) {
                 Button btn = new Button("Build " + factory.create(null, null).getClass().getSimpleName());
@@ -695,13 +888,75 @@ public class TheThrone extends GameApplication {
                 this.tileMenu.getChildren().add(btn);
             }
         }
+        if (tile.getSoldier() != null &&
+                tile.getSoldier().getPlayer() == this.player &&
+                !tile.getSoldier().hasMoved() &&
+                tile.getBuilding() != null &&
+                tile.getBuilding() instanceof Castle castle &&
+                castle.getOwner() != tile.getSoldier().getPlayer()) {
+            Button captureCastle = new Button("Capture Castle");
+            captureCastle.setMinWidth(200);
+            captureCastle.setOnAction(e -> {
+                castle.capture(this.player);
+                updateMap();
+                updateTileMenu();
+            });
 
-        if (tile.getSoldier() != null && !tile.getSoldier().hasMoved()) {
+            this.tileMenu.getChildren().add(captureCastle);
+        }
+
+        if (tile.getBuilding() instanceof WizardTower wizardTower)
+            System.out.println(wizardTower.getOwner());
+
+        if (!player.getHavingTower() && tile.getBuilding() != null && tile.getSoldier() != null && tile.getSoldier().getPlayer() == this.player
+                && !tile.getSoldier().hasMoved() &&
+                tile.getBuilding() instanceof WizardTower wizardTower && wizardTower.getOwner() == null) {
+            Button captureTower = new Button("Capture Tower");
+            captureTower.setMinWidth(200);
+            captureTower.setOnAction(e -> {
+                wizardTower.capture(this.player);
+                updateMap();
+                updateTileMenu();
+            });
+            this.tileMenu.getChildren().add(captureTower);
+        }
+
+        if (tile.getSoldier() != null) {
+            Button desc = new Button("hp: " + tile.getSoldier().getHealth());
+            Button desc1 = new Button("speed: " + tile.getSoldier().getSpeed());
+            Button desc2 = new Button("damage: " + tile.getSoldier().getDamage());
+            Button desc3 = new Button("defence: " + tile.getSoldier().getDefence());
+            desc.setDisable(true);
+            desc1.setDisable(true);
+            desc2.setDisable(true);
+            desc3.setDisable(true);
+
+            this.tileMenu.getChildren().addAll(desc, desc1, desc2, desc3);
+        }
+
+        if (tile.getSoldier() != null && tile.getSoldier().getPlayer() == this.player && !tile.getSoldier().hasMoved()) {
             Button moveSoldier = new Button("Move Soldier");
             moveSoldier.setMinWidth(200);
             moveSoldier.setOnAction(e -> this.isSoldierMoving = true);
 
             this.tileMenu.getChildren().add(moveSoldier);
+        }
+
+        if (tile.getSoldier() != null && tile.getSoldier().getPlayer() == this.player && !tile.getSoldier().hasAttacked()) {
+            Button attackSoldier = new Button("Attack Soldier");
+            attackSoldier.setMinWidth(200);
+            attackSoldier.setOnAction(e -> this.isSoldierAttacking = true);
+
+            this.tileMenu.getChildren().add(attackSoldier);
+        }
+
+        if (tile.getSoldier() != null && tile.getSoldier().getPlayer() == this.player && tile.getSoldier() instanceof Wizard wizard
+                && !tile.getSoldier().hasMoved() && !wizard.getHadEffect()) {
+            Button wizardEffect = new Button("Wizard Effect");
+            wizardEffect.setMinWidth(200);
+            wizardEffect.setOnAction(e -> this.isWizardCasting = true);
+
+            this.tileMenu.getChildren().add(wizardEffect);
         }
     }
 
