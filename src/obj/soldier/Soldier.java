@@ -165,6 +165,10 @@ public abstract class Soldier implements Serializable {
         return this.hasMoved;
     }
 
+    public boolean hasAttacked(){
+        return this.hasAttacked;
+    }
+
     public boolean attack(Position targetPos) {
         if (this.hasAttacked) {
             return false;

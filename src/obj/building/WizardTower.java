@@ -48,7 +48,10 @@ public class WizardTower extends Building implements TrainerBuilding {
         }
     }
 
-    public void capture(Player player) {this.owner = player;}
+    public void capture(Player player) {
+        this.owner = player;
+        player.setHavingTower(true);
+    }
 
     public Magic getMagic() {
         return magic;

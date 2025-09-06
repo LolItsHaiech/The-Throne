@@ -80,4 +80,12 @@ public enum Weapon implements Serializable {
     public String toString() {
         return this.name() + " (" + this.damage + ")";
     }
+
+    public MaterialCost getPrice() {
+        return price;
+    }
+
+    public MaterialCost getUnluckPrice() {
+        return unluckPrice;
+    }
 }
